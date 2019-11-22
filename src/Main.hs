@@ -1,2 +1,4 @@
+import ModelChecker.Parser
+
 main :: IO () 
-main = putStrLn "Hello world" 
+main = print =<< parseString <$> getContents 

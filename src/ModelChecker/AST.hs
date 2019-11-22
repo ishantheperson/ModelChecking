@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module ModelChecker.AST where 
 
 -- We assume all formulas are in 
@@ -9,7 +10,7 @@ data Statement = Statement [Quantifier] Matrix deriving Show
 
 data Quantifier = 
     Forall String 
-  | Exists String 
+  -- | Exists String 
     deriving Show 
 
 data Matrix = 
@@ -20,5 +21,11 @@ data Matrix =
   | Variable String 
     deriving Show
 
+convertExists = error "Exists not supported yet"
+
 convertOr :: Matrix -> Matrix -> Matrix 
 convertOr a b = Negation (Negation a `And` Negation b)
+
+convertNotEqual :: Matrix -> Matrix -> Matrix 
+convertNotEqual a b = Negation (a `Equals` b)
+
