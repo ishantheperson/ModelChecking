@@ -15,7 +15,7 @@ parseString = parse (whitespace *> input) ""
 
 -- | Parses one quantifier expression 
 quantifier :: Parser Quantifier
-quantifier = quant "forall" Forall <|> quant "exists" convertExists 
+quantifier = quant "forall" Forall <|> quant "exists" Exists 
   where quant string op = do 
           reserved string 
           name <- identifier 

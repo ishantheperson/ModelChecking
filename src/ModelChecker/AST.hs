@@ -9,8 +9,8 @@ module ModelChecker.AST where
 data Statement = Statement [Quantifier] Matrix deriving Show 
 
 data Quantifier = 
-    Forall String 
-  -- | Exists String 
+    Forall String -- Forall x ... = Not (exists (Not ...)
+  | Exists String 
     deriving Show 
 
 data Matrix = 
@@ -20,8 +20,6 @@ data Matrix =
   | Equals Matrix Matrix 
   | Variable String 
     deriving Show
-
-convertExists = error "Exists not supported yet"
 
 convertOr :: Matrix -> Matrix -> Matrix 
 convertOr a b = Negation (Negation a `And` Negation b)
