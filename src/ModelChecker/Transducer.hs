@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-} 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds #-}
 module ModelChecker.Transducer where 
 
 import Util 
@@ -13,34 +14,47 @@ import Data.Maybe (fromJust)
 import Control.Monad 
 import Control.Monad.State 
 
+import Control.Arrow ((>>>))
+
 -- Honestly this is probably not necessary 
 data Node a = Node { label :: a } deriving (Show, Eq, Ord)
 
+-- Right now represents a deterministic
+-- transducer. You could (inefficiently)
+-- use this to 
 -- node: Type of nodes
 -- sigma: Type of transition labels (alphabet)
-data Transducer node sigma = Transducer {
+data Transducer node sigma arity = Transducer {
   states :: Set node,
-  alphabet :: Set sigma,
+  --alphabet :: Set sigma,
+  arity :: SNat arity,
   isFinalState :: node -> Bool,
   isInitialState :: node -> Bool,
-  transitionFunction :: (node, sigma) -> node
+  transitionFunction :: (node, Vector arity sigma) -> node
 }
 
-getInitialState t = fromJust $ find (isInitialState t) (states t) 
+getInitialState t = 
+  case find (isInitialState t) (states t) of 
+    Just s -> s 
+    Nothing -> error "No initial state found in given automata!"
 
-getDestinations :: Ord a => Transducer a b -> a -> Set a 
-getDestinations t n = Set.map (curry (transitionFunction t) n) (alphabet t)
+--getDestinations :: Ord a => Transducer a b c -> Vector c a -> Set a 
+getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
+                      Transducer node sigma arity -> node -> Set node 
+getDestinations t n = 
+  Set.map (curry (transitionFunction t) n) (Set.fromList $ (getAlphabet (arity t)))
 
-accepts :: forall a b. Transducer a b -> [b] -> Bool 
+accepts :: forall node sigma arity. Transducer node sigma arity -> [Vector arity sigma] -> Bool 
 accepts t = go $ getInitialState t
-  where go :: a -> [b] -> Bool 
+  where go :: node -> [Vector arity sigma] -> Bool
         go s = \case 
           [] -> isFinalState t s 
           x:xs -> go (transitionFunction t (s, x)) xs 
-
-empty :: forall a b. Ord a => Transducer a b -> Bool 
+         
+empty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
+              Transducer node sigma arity -> Bool
 empty t = Set.null . Set.filter (isFinalState t) $ reachable
-  where go :: MonadState (Set a) m => a -> [a] -> m ()
+  where go :: MonadState (Set node) m => node -> [node] -> m ()
         go currentNode next = do 
           visited <- get 
 
@@ -54,48 +68,27 @@ empty t = Set.null . Set.filter (isFinalState t) $ reachable
                 [] -> return () 
                 x:xs -> go x xs 
 
-        reachable :: Set a 
+        reachable :: Set node
         reachable = execState (go (getInitialState t) []) Set.empty   
 
--- | Precondition: t1 and t2 must both have the same alphabet 
-productMachine :: Transducer a b -> Transducer c b -> Transducer (a, c) b
-productMachine t1 t2 = Transducer states' alphabet' isFinalState' isInitialState' transitionFunction' 
+productMachine :: Transducer n1 b c -> Transducer n2 b c -> Transducer (n1, n2) b c
+productMachine t1 t2 = Transducer states' arity' isFinalState' isInitialState' transitionFunction' 
   where states' = states t1 `Set.cartesianProduct` states t2
-        alphabet' = alphabet t1 -- Alphabet stays the same 
+        arity' = arity t1
         isFinalState' (n1, n2) = isFinalState t1 n1 && isFinalState t2 n2 
         isInitialState' (n1, n2) = isInitialState t1 n1 && isInitialState t2 n2 
 
         transitionFunction' ((n1, n2), e) = 
           (transitionFunction t1 (n1, e), transitionFunction t2 (n2, e))
 
-negateMachine :: Transducer a b -> Transducer a b 
+negateMachine :: Transducer a b c -> Transducer a b c
 negateMachine t1 = t1 { isFinalState = not . isFinalState t1 }
 
--- Some small test code 
-data AddStates = Carry | NoCarry | Sink deriving (Show, Eq, Ord)
+{-
 
-addStates = Set.fromList [Carry, NoCarry, Sink]
-addAlphabet = Set.fromList $ map (\[a, b, c] -> (a, b, c)) $ allPerms 3
-  where allPerms 0 = [[]]
-        allPerms i = (:) <$> [1, 0] <*> allPerms (pred i)
-addIsFinal s = s == NoCarry 
-addIsInitial s = s == NoCarry
-addTransition = \case 
-  (Sink, _) -> Sink 
-  (Carry, (1, 0, 1)) -> NoCarry
-  (Carry, (0, 1, 1)) -> NoCarry
-  (Carry, (0, 0, 1)) -> NoCarry 
-  (Carry, (1, 1, 0)) -> Carry
-  (NoCarry, (1, 1, 0)) -> Carry
-  (NoCarry, (0, 0, 0)) -> NoCarry
-  (NoCarry, (1, 0, 1)) -> NoCarry
-  (NoCarry, (0, 1, 1)) -> NoCarry
-  _ -> Sink 
 
--- Example: 
--- >>> accepts addDFA [(1, 1, 0), (0, 0, 1)]
--- True
-addDFA = Transducer addStates addAlphabet addIsFinal addIsInitial addTransition
+
+-- Some small test code   
 
 sampleStates = Set.fromList $ map Node [1..3]
 sampleAlphabet = Set.fromList ['a']
@@ -121,3 +114,4 @@ sampleTransitionFunction2 = \case
   (Node 3, _) -> Node 1
   (Node i, _) -> Node $ i + 1
 d = Transducer sampleStates sampleAlphabet sampleIsFinalState sampleIsInitialState sampleTransitionFunction2
+-}
