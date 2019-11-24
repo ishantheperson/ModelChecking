@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 import ModelChecker.Parser
 import ModelChecker.Transducer 
 
@@ -6,6 +7,7 @@ import SampleModel
 import Util
 
 import Control.Monad 
+import System.IO
 
 #define TEST_PARSER 0 
 #define TEST_DFA 1 
@@ -34,6 +36,7 @@ main = do
   where readBits :: String -> IO [BinaryAlphabet]
         readBits s = do 
           putStr $ s ++ ": "
+          hFlush stdout
           input <- map (fromInteger . read) . words <$> getLine 
 
           return $ reverse input 

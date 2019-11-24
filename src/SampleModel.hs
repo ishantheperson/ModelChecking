@@ -55,3 +55,10 @@ eqDFA = Transducer eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition
           (Equal, _) -> ESink
           (ESink, _) -> ESink
         
+moreThanThreeDFA :: Transducer Int BinaryAlphabet (Succ Zero)          
+moreThanThreeDFA = Transducer states $(mkSnat 1) (==3) (==1) delta 
+  where states = Set.fromList [1..3]
+        delta (state, _) = case state of 
+          1 -> 2
+          2 -> 3
+          3 -> 3
