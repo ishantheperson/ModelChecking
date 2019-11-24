@@ -40,6 +40,5 @@ main = do
 
         ioGuard :: Bool -> String -> IO () 
         ioGuard condition msg = 
-          when (not condition) $ 
-            putStrLn $ "error: " ++ msg 
+          unless condition $ putStrLn $ "error: " ++ msg 
 #endif 

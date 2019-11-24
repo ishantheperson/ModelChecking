@@ -8,8 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Util where 
   
-import Control.Applicative
-import Control.Monad  
+import Control.Applicative  
 import "template-haskell" Language.Haskell.TH
 
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
@@ -56,10 +55,10 @@ append a VEmpty = a :+ VEmpty
 append a (x :+ xs) = x :+ append a xs
 
 deleteFirst :: Vector (Succ n) a -> Vector n a 
-deleteFirst (x :+ xs) = xs 
+deleteFirst (_ :+ xs) = xs 
 
 deleteLast :: Vector (Succ n) a -> Vector n a 
-deleteLast (x :+ VEmpty) = VEmpty
+deleteLast (_ :+ VEmpty) = VEmpty
 deleteLast (x :+ (y :+ ys)) = x :+ deleteLast (y :+ ys)
 
 {-
