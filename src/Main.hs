@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 import ModelChecker.Parser
-import ModelChecker.Transducer 
+import ModelChecker.DFA 
 
 import SampleModel 
 import Util
