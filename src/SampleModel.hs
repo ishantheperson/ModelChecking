@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
-module SampleModel (addDFA) where 
+{-# LANGUAGE DataKinds #-}
+{-# OPTIONS_GHC -Wno-missing-methods #-}
+module SampleModel where 
 
 import Util 
 import ModelChecker.Transducer
@@ -12,7 +14,7 @@ instance Num BinaryAlphabet where
   fromInteger _ = BOne 
   -- TODO: add rest of operations 
 
-data AddStates = Carry | NoCarry | Sink deriving (Show, Eq, Ord)
+data AddState = Carry | NoCarry | Sink deriving (Show, Eq, Ord)
 
 addStates = Set.fromList [Carry, NoCarry, Sink]
 addIsFinal s = s == NoCarry 
@@ -33,6 +35,7 @@ addTransition (state, v) = case (state, fromVec3 v) of
 -- >>> accepts addDFA (map toVec3 [(1, 1, 0), (0, 0, 1)])
 -- True
 -- addDFA = Transducer addStates (SSucc (SSucc (SSucc SZero))) addIsFinal addIsInitial addTransition
+addDFA :: Transducer AddState BinaryAlphabet (Succ (Succ (Succ Zero)))
 addDFA = Transducer addStates $(mkSnat 3) addIsFinal addIsInitial addTransition
 
 data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
