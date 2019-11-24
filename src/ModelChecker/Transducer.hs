@@ -9,15 +9,11 @@ import Util
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set 
 import Data.Foldable (find)
-import Data.Maybe (fromJust)
 
-import Control.Monad 
 import Control.Monad.State 
 
-import Control.Arrow ((>>>))
-
 -- Honestly this is probably not necessary 
-data Node a = Node { label :: a } deriving (Show, Eq, Ord)
+newtype Node a = Node { label :: a } deriving (Show, Eq, Ord)
 
 -- Right now represents a deterministic
 -- transducer. You could (inefficiently)
@@ -42,7 +38,7 @@ getInitialState t =
 getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
                       Transducer node sigma arity -> node -> Set node 
 getDestinations t n = 
-  Set.map (curry (transitionFunction t) n) (Set.fromList $ (getAlphabet (arity t)))
+  Set.map (curry (transitionFunction t) n) (Set.fromList $ getAlphabet (arity t))
 
 accepts :: forall node sigma arity. Transducer node sigma arity -> [Vector arity sigma] -> Bool 
 accepts t = go $ getInitialState t
@@ -54,8 +50,8 @@ accepts t = go $ getInitialState t
 empty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
               Transducer node sigma arity -> Bool
 empty t = Set.null . Set.filter (isFinalState t) $ reachable
-  where go :: MonadState (Set node) m => node -> [node] -> m ()
-        go currentNode next = do 
+  where dfs :: MonadState (Set node) m => node -> [node] -> m ()
+        dfs currentNode next = do 
           visited <- get 
 
           if Set.member currentNode visited 
@@ -66,10 +62,10 @@ empty t = Set.null . Set.filter (isFinalState t) $ reachable
               let destinations = getDestinations t currentNode \\ visited 
               case Set.toList destinations ++ next of 
                 [] -> return () 
-                x:xs -> go x xs 
+                x:xs -> dfs x xs 
 
         reachable :: Set node
-        reachable = execState (go (getInitialState t) []) Set.empty   
+        reachable = execState (dfs (getInitialState t) []) Set.empty   
 
 productMachine :: Transducer n1 b c -> Transducer n2 b c -> Transducer (n1, n2) b c
 productMachine t1 t2 = Transducer states' arity' isFinalState' isInitialState' transitionFunction' 

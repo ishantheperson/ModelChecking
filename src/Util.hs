@@ -1,16 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 
 module Util where 
 
-import GHC.TypeLits (TypeError, ErrorMessage(Text))
 --import Language.Haskell.TH
 
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
@@ -64,7 +61,7 @@ index (a :+ b) (SSucc x) = index b x
 --   where the elements come from a bounded enumeration 
 --   of length n 
 getAlphabet :: (Bounded a, Enum a) => SNat n -> [Vector n a]
-getAlphabet n = getAllVectors [minBound..maxBound] n 
+getAlphabet = getAllVectors [minBound..maxBound] 
 
 getAllVectors :: [a] -> SNat n -> [Vector n a]
 getAllVectors s SZero = [VEmpty]

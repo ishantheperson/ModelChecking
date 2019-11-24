@@ -3,10 +3,13 @@ module SampleModel (addDFA) where
 import Util 
 import ModelChecker.Transducer
 
-import Data.Set (Set)
 import qualified Data.Set as Set 
 
-data BinaryAlphabet = Zero | One deriving (Show, Eq, Ord, Bounded, Enum)
+data BinaryAlphabet = BZero | BOne deriving (Show, Eq, Ord, Bounded, Enum)
+instance Num BinaryAlphabet where 
+  fromInteger 0 = BZero
+  fromInteger _ = BOne 
+  -- TODO: add rest of operations 
 
 data AddStates = Carry | NoCarry | Sink deriving (Show, Eq, Ord)
 
