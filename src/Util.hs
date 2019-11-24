@@ -70,6 +70,10 @@ getAllVectors :: [a] -> SNat n -> [Vector n a]
 getAllVectors s SZero = [VEmpty]
 getAllVectors s (SSucc x) = (:+) <$> s <*> getAllVectors s x  
 
+fromVec2 :: Vector (Succ (Succ Zero)) a -> (a, a)
+fromVec2 (a :+ b :+ VEmpty) = (a, b)
+toVec2 (a, b) = a :+ b :+ VEmpty 
+
 fromVec3 :: Vector (Succ (Succ (Succ Zero))) a -> (a, a, a)
 fromVec3 (a :+ b :+ c :+ VEmpty)  = (a, b, c)
 

@@ -32,7 +32,18 @@ addDFA = Transducer addStates (SSucc (SSucc (SSucc SZero))) addIsFinal addIsInit
 
 data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 
-eqStates = Set.fromList [Equal, ESink]
-eqAlphabet = Set.fromList $ [(0, 0), (0, 1), (1, 0), (1, 1)]
-
-
+-- Example:
+-- >>> accepts eqDFA (map toVec2 [(0, 0), (1, 1), (0, 0)])
+-- True
+-- >>> accepts eqDFA (map toVec2 [(0, 0), (1, 1), (0, 1)])
+-- False
+eqDFA = Transducer eqStates (SSucc (SSucc SZero)) eqIsFinal eqIsInitial eqTransition
+  where eqStates = Set.fromList [Equal, ESink]
+        eqIsFinal = (==) Equal 
+        eqIsInitial = (==) Equal 
+        eqTransition (state, v) = case (state, fromVec2 v) of 
+          (Equal, (0, 0)) -> Equal 
+          (Equal, (1, 1)) -> Equal
+          (Equal, _) -> ESink
+          (ESink, _) -> ESink
+        
