@@ -2,7 +2,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
-module ModelChecker.Transducer where 
+{-# LANGUAGE TemplateHaskell #-}
+module ModelChecker.Transducer (
+  Transducer(..), 
+  accepts, empty, 
+  productMachine, negateMachine) where 
 
 import Util 
 
@@ -22,7 +26,6 @@ newtype Node a = Node { label :: a } deriving (Show, Eq, Ord)
 -- sigma: Type of transition labels (alphabet)
 data Transducer node sigma arity = Transducer {
   states :: Set node,
-  --alphabet :: Set sigma,
   arity :: SNat arity,
   isFinalState :: node -> Bool,
   isInitialState :: node -> Bool,
@@ -79,35 +82,3 @@ productMachine t1 t2 = Transducer states' arity' isFinalState' isInitialState' t
 
 negateMachine :: Transducer a b c -> Transducer a b c
 negateMachine t1 = t1 { isFinalState = not . isFinalState t1 }
-
-{-
-
-
-
--- Some small test code   
-
-sampleStates = Set.fromList $ map Node [1..3]
-sampleAlphabet = Set.fromList ['a']
-sampleIsFinalState (Node i) = i == 3
-sampleIsInitialState (Node i) = i == 1 
-sampleTransitionFunction = \case 
-  (Node 3, _) -> Node 3
-  (Node i, _) -> Node $ i + 1 
-
--- L(a) = a^n where n >= 2
-a :: Transducer (Node Int) Char 
-a = Transducer sampleStates sampleAlphabet sampleIsFinalState sampleIsInitialState sampleTransitionFunction
-
--- L(b) = { [], a }
-b = negateMachine a 
-
--- L(c) = {} 
--- i.e. empty c == True 
-c = a `productMachine` b 
--- example usage: accepts a "aaaaa"
-
-sampleTransitionFunction2 = \case 
-  (Node 3, _) -> Node 1
-  (Node i, _) -> Node $ i + 1
-d = Transducer sampleStates sampleAlphabet sampleIsFinalState sampleIsInitialState sampleTransitionFunction2
--}

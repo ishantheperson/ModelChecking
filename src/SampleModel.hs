@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module SampleModel (addDFA) where 
 
 import Util 
@@ -31,7 +32,8 @@ addTransition (state, v) = case (state, fromVec3 v) of
 -- Example: 
 -- >>> accepts addDFA (map toVec3 [(1, 1, 0), (0, 0, 1)])
 -- True
-addDFA = Transducer addStates (SSucc (SSucc (SSucc SZero))) addIsFinal addIsInitial addTransition
+-- addDFA = Transducer addStates (SSucc (SSucc (SSucc SZero))) addIsFinal addIsInitial addTransition
+addDFA = Transducer addStates $(mkSnat 3) addIsFinal addIsInitial addTransition
 
 data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 
@@ -40,7 +42,7 @@ data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 -- True
 -- >>> accepts eqDFA (map toVec2 [(0, 0), (1, 1), (0, 1)])
 -- False
-eqDFA = Transducer eqStates (SSucc (SSucc SZero)) eqIsFinal eqIsInitial eqTransition
+eqDFA = Transducer eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition
   where eqStates = Set.fromList [Equal, ESink]
         eqIsFinal = (==) Equal 
         eqIsInitial = (==) Equal 

@@ -2,6 +2,8 @@ module ModelChecker.Parser where
 
 import ModelChecker.AST 
 
+import Control.Applicative
+
 import Text.ParserCombinators.Parsec 
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language

@@ -4,11 +4,14 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Util where 
-
---import Language.Haskell.TH
+  
+import Control.Applicative
+import Control.Monad  
+import "template-haskell" Language.Haskell.TH
 
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
 data SNat n where 
@@ -46,6 +49,20 @@ index :: Finite n -> Vector n a -> a
 index FZero (x :+ _) = x
 index (FSucc i) (_ :+ xs) = index i xs  
 
+prepend :: a -> Vector n a -> Vector (Succ n) a 
+prepend a xs = a :+ xs 
+
+append :: a -> Vector n a -> Vector (Succ n) a 
+append a VEmpty = a :+ VEmpty
+append a (x :+ xs) = x :+ append a xs
+
+deleteFirst :: Vector (Succ n) a -> Vector n a 
+deleteFirst (x :+ xs) = xs 
+
+deleteLast :: Vector (Succ n) a -> Vector n a 
+deleteLast (x :+ VEmpty) = VEmpty
+deleteLast (x :+ (y :+ ys)) = x :+ deleteLast (y :+ ys)
+
 {-
 type family LessThan (a :: Nat) (b :: Nat) = c where 
   LessThan Zero b = True 
@@ -75,6 +92,11 @@ fromVec3 :: Vector (Succ (Succ (Succ Zero))) a -> (a, a, a)
 fromVec3 (a :+ b :+ c :+ VEmpty)  = (a, b, c)
 
 toVec3 (a, b, c) = a :+ b :+ c :+ VEmpty
+
+mkSnat :: Int -> Q Exp
+mkSnat 0 = [| SZero |]
+mkSnat i | i > 0 = [| SSucc $(mkSnat $ pred i) |]
+mkSnat other = error $ "mkSnat " ++ show other ++ ": must be nonnegative"
 
 {-
 data Nat1 = Zero | Succ Nat1
