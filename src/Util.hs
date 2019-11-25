@@ -7,6 +7,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeOperators #-}
 module Util where 
   
 import Control.Applicative  
@@ -14,6 +15,15 @@ import "template-haskell" Language.Haskell.TH
 
 -- | Represents a natural number as a type
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
+
+type family (n :: Nat) + (m :: Nat) = (c :: Nat) where 
+  Zero     + m = m 
+  (Succ n) + m = Succ (n + m)
+
+addSnat :: SNat n -> SNat m -> SNat (n + m)
+addSnat SZero m = m 
+addSnat (SSucc n) m = SSucc (n `addSnat` m)
+
 -- | Connects the concrete (value level) representation
 --   of a natural number with the type level representation
 --   above. 
@@ -86,9 +96,9 @@ index (x :+ _)  FZero     = x
 index (_ :+ xs) (FSucc i) = index xs i
 
 -- | Updates the given vector at a position. 
-update :: Finite n -> a -> Vector n a -> Vector n a 
-update FZero     x (_ :+ xs) = x :+ xs 
-update (FSucc i) x (y :+ xs) = y :+ update i x xs 
+update :: Vector n a -> a -> Finite n -> Vector n a 
+update (_ :+ xs) x FZero     = x :+ xs 
+update (y :+ xs) x (FSucc i) = y :+ update xs x i 
 
 -- | Cons onto the front of a vector
 prepend :: a -> Vector n a -> Vector (Succ n) a 
