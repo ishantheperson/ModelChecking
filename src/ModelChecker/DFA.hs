@@ -40,7 +40,7 @@ toAdjacencyMatrix t = map processState nodeList
   where nodeList = Set.toList $ states t
         processState s = 
           let reachable = getDestinations t s 
-          in map (flip Set.member reachable) nodeList 
+          in map (`Set.member` reachable) nodeList 
 
 -- | Gets the initial state of the DFA by using its @isInitialState@ function.
 --   Precondition: @isInitialState$ must return @True@ for at least one state in
@@ -86,8 +86,8 @@ empty t = Set.null . Set.filter (isFinalState t) $ reachable
         reachable :: Set node
         reachable = execState (dfs (getInitialState t) []) Set.empty   
 
--- | Constructions a DFA from t1 and t2 
---   where L(productMachine t1 t2) = L(t1) intersect L(t2)       
+-- | Constructs a DFA from t1 and t2 
+--   where \( L(t1 \texttt{ `productMachine` } t2) = L(t_1) \cap L(t_2) \) 
 productMachine :: DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
 productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transitionFunction' 
   where states' = states t1 `Set.cartesianProduct` states t2
