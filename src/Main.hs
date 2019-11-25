@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 import ModelChecker.Parser
 import ModelChecker.DFA 
+import ModelChecker.AST
 
 import SampleModel 
 import Vector
@@ -12,11 +13,11 @@ import System.IO
 #define TEST_PARSER 0 
 #define TEST_DFA 1 
 
-#define CURRENT_TEST TEST_DFA 
+#define CURRENT_TEST TEST_PARSER 
 
 main :: IO () 
 #if CURRENT_TEST == TEST_PARSER
-main = print =<< parseString <$> getContents 
+main = putStrLn =<< printStatement . parseString <$> getContents 
 #elif CURRENT_TEST == TEST_DFA 
 main = do
   putStrLn "Testing a + b = c"
@@ -43,5 +44,6 @@ main = do
 
         ioGuard :: Bool -> String -> IO () 
         ioGuard condition msg = 
-          unless condition $ putStrLn $ "error: " ++ msg 
+          unless condition $ do putStrLn $ "error: " ++ msg 
+                                exitFailure 
 #endif 

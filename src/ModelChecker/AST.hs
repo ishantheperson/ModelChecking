@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module ModelChecker.AST where 
 
 -- We assume all formulas are in 
@@ -21,9 +22,22 @@ data Matrix =
   | Variable String 
     deriving Show
 
-convertOr :: Matrix -> Matrix -> Matrix 
+convertImplies, convertOr, convertNotEqual :: Matrix -> Matrix -> Matrix 
+convertImplies a b = Negation a `convertOr` b 
 convertOr a b = Negation (Negation a `And` Negation b)
-
-convertNotEqual :: Matrix -> Matrix -> Matrix 
 convertNotEqual a b = Negation (a `Equals` b)
 
+printStatement (Right (Statement qs m)) = concatMap printQuantifier qs ++ printMatrix m
+printStatement (Left e) = show e  
+
+printQuantifier = \case 
+  Forall s -> "forall " ++ s ++ ". "
+  Exists s -> "exists " ++ s ++ ". "
+
+printMatrix = \case 
+  Negation (Variable s) -> "~" ++ s 
+  Negation m -> "~(" ++ printMatrix m ++ ")"
+  And a b -> "(" ++ printMatrix a ++ ") && (" ++ printMatrix b ++ ")"
+  RelatedTo a b -> "(" ++ printMatrix a ++ ") -> (" ++ printMatrix b ++ ")"
+  Equals a b ->  "(" ++ printMatrix a ++ ") == (" ++ printMatrix b ++ ")"
+  Variable s -> s 

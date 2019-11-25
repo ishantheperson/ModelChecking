@@ -12,7 +12,7 @@ import qualified Text.ParserCombinators.Parsec.Token as Tok
 -- | Parses the given string, and returns either
 --   a parse error or a fully parsed Statement
 parseString :: String -> Either ParseError Statement 
-parseString = parse (whitespace *> input) "" 
+parseString = parse (whitespace *> input <* eof) "" 
   where input = Statement <$> many quantifier <*> matrix 
 
 -- | Parses one quantifier expression 
@@ -31,10 +31,12 @@ term = parens matrix <|> Variable <$> identifier <?> "expression"
 
 operators = [[Prefix (Negation <$ choice [reservedOp "~", reservedOp "!"])],
              [mkOp "&&" And,
+              mkOp "="  Equals,
               mkOp "==" Equals,
               mkOp "->" RelatedTo,
               mkOp "||" convertOr,
-              mkOp "!=" convertNotEqual]]
+              mkOp "!=" convertNotEqual],
+             [mkOp "=>" convertImplies]]
   where mkOp s f = Infix (f <$ reservedOp s) AssocLeft
 
 lexer = Tok.makeTokenParser (emptyDef {

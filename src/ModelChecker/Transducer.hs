@@ -25,6 +25,8 @@ extend mapping t = DFA (states t) arity' (isFinalState t) (isInitialState t) tra
           let delta = transitionFunction t 
           in delta (current, index input <$> mapping)
 
+-- | Extends a DFA to several more tracks, using the given mapping to control which "tracks"
+--   are actually used. It also takes in a witness to how many more tracks should be added.           
 extendN :: forall node sigma n m. Vector n (Finite (n + m)) -> SNat m -> DFA node sigma n -> DFA node sigma (n + m)
 extendN mapping m t = DFA (states t) arity' (isFinalState t) (isInitialState t) transitionFunction'
   -- Mapping would be something like (0, 2) which indicates
