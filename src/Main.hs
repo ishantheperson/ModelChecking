@@ -4,7 +4,7 @@ import ModelChecker.Parser
 import ModelChecker.DFA 
 
 import SampleModel 
-import Util
+import Vector
 
 import Control.Monad 
 import System.IO

@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
-module Util where 
+module Vector where 
   
 import Control.Applicative  
 import "template-haskell" Language.Haskell.TH
@@ -141,8 +141,9 @@ toVec2 (a, b) = a :+ b :+ VEmpty
 
 fromVec3 :: Vector (Succ (Succ (Succ Zero))) a -> (a, a, a)
 fromVec3 (a :+ b :+ c :+ VEmpty)  = (a, b, c)
-
 toVec3 (a, b, c) = a :+ b :+ c :+ VEmpty
+
+toVec4 (a, b, c, d) = a :+ b :+ c :+ d :+ VEmpty 
 
 -- | Makes the singleton instance of a natural number
 --   from an integer literal 

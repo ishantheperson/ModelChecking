@@ -9,7 +9,7 @@ module ModelChecker.DFA (
   accepts, empty, 
   productMachine, negateMachine) where 
 
-import Util 
+import Vector 
 
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set 

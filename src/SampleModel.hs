@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 module SampleModel where 
 
-import Util 
+import Vector 
 import ModelChecker.DFA
 
 import qualified Data.Set as Set 

@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeOperators #-}
 module ModelChecker.Transducer where 
 
-import Util   
+import Vector   
 import ModelChecker.DFA 
 import SampleModel 
 
@@ -45,3 +45,4 @@ deleteTrack t i = t { transitionFunction = transitionFunction' }
           in concatMap (curry (transitionFunction t) current) replacedVectors 
 
 eq3 = extend ($(mkFinite 0) :+ $(mkFinite 2) :+ VEmpty) eqDFA  
+eq4 = extendN ($(mkFinite 0) :+ $(mkFinite 2) :+ VEmpty) $(mkSnat 2) eqDFA 
