@@ -7,6 +7,8 @@ module ModelChecker.AST where
 -- that quantifiers do not appear in the matrix
 -- i.e. the quantifiers are all "in front" of the formula
 
+-- Example (injectivity): \( \forall a b c. a \to c \land b \to c \implies a = b \)
+
 data Statement = Statement [Quantifier] Matrix deriving Show 
 
 data Quantifier = 

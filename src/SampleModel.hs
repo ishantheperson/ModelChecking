@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 module SampleModel where 
 
@@ -45,6 +46,7 @@ data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 -- True
 -- >>> accepts eqDFA (map toVec2 [(0, 0), (1, 1), (0, 1)])
 -- False
+eqDFA :: DFA EqualStates BinaryAlphabet (Succ (Succ Zero))
 eqDFA = DFA eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition
   where eqStates = Set.fromList [Equal, ESink]
         eqIsFinal = (==) Equal 
@@ -62,3 +64,32 @@ moreThanThreeDFA = DFA states $(mkSnat 1) (==3) (==1) delta
           1 -> 2
           2 -> 3
           3 -> 3
+
+data EqualParityStates = EvenEven | OddOdd | EvenOdd | OddEven deriving (Show, Eq, Bounded, Ord, Enum)          
+equalParityDFA :: DFA EqualParityStates BinaryAlphabet (Succ (Succ Zero))
+equalParityDFA = DFA states $(mkSnat 2) isInitial isFinal delta 
+  where states = Set.fromList [minBound..maxBound]
+        isInitial = (==) EvenEven 
+        isFinal s = s == EvenEven || s == OddOdd 
+        delta (state, input) = (:[]) $ case (state, fromVec2 input) of 
+          (a, (0, 0)) -> a 
+          (a, (1, 1)) -> flipBoth a 
+          (a, (0, 1)) -> flipBot a 
+          (a, (1, 0)) -> flipTop a 
+        flipBoth = \case 
+                    EvenEven -> OddOdd
+                    OddOdd -> EvenEven
+                    EvenOdd -> OddEven
+                    OddEven -> EvenOdd
+
+        flipBot = \case 
+                    EvenEven -> EvenOdd 
+                    OddOdd -> OddEven 
+                    EvenOdd -> EvenEven 
+                    OddEven -> OddOdd 
+
+        flipTop = \case 
+                    EvenEven -> OddEven
+                    OddOdd -> EvenOdd 
+                    EvenOdd -> OddOdd 
+                    OddEven -> EvenEven  

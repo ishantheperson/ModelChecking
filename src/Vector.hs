@@ -82,16 +82,34 @@ instance Bounded (Finite (Succ n)) => Bounded (Finite (Succ (Succ n))) where
   minBound = FZero 
   maxBound = FSucc (maxBound :: Finite (Succ n)) 
 
+snatToFinite :: SNat (Succ n) -> Finite (Succ n) 
+snatToFinite (SSucc SZero) = FZero 
+snatToFinite (SSucc (SSucc n)) = FSucc (snatToFinite (SSucc n))
+
 new :: SNat n -> a -> Vector n a 
 new SZero     _ = VEmpty
 new (SSucc i) a = a :+ new i a 
 
+-- | Converts a list into a sized vector using CPS 
 withVector :: [a] -> (forall (n :: Nat). SNat n -> Vector n a -> b) -> b 
 withVector []     f = f SZero VEmpty 
 withVector (x:xs) f = withVector xs $ \len vs -> f (SSucc len) (x :+ vs)  
 
+-- | Creates a new vector of the given size using a function 
+newWith :: SNat n -> (Finite n -> a) -> Vector n a
+newWith SZero     _ = VEmpty
+newWith (SSucc i) f = f FZero :+ newWith i (f . FSucc)
+
+indexOf :: Eq a => Vector n a -> a -> (Finite n -> b) -> b 
+indexOf VEmpty    _ _ = error "Cannot find"
+indexOf (x :+ xs) a f = if a == x 
+                          then f FZero 
+                          else indexOf xs a (f . FSucc)
+
 -- | Indexing into a vector (poor performance)
---   but is safe 
+--   but is safe. If we cared about performance
+--   we wouldn't have written the project in a functional
+--   programming language lmao. 
 index :: Vector n a -> Finite n -> a
 index (x :+ _)  FZero     = x
 index (_ :+ xs) (FSucc i) = index xs i

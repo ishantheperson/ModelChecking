@@ -30,9 +30,9 @@ matrix = buildExpressionParser operators term <?> "expression"
 term = parens matrix <|> Variable <$> identifier <?> "expression"
 
 operators = [[Prefix (Negation <$ choice [reservedOp "~", reservedOp "!"])],
+             [mkOp "="  Equals,
+              mkOp "==" Equals],
              [mkOp "&&" And,
-              mkOp "="  Equals,
-              mkOp "==" Equals,
               mkOp "->" RelatedTo,
               mkOp "||" convertOr,
               mkOp "!=" convertNotEqual],
