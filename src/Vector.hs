@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE Rank2Types #-}
 module Vector where 
   
 import Control.Applicative  
@@ -85,9 +86,9 @@ new :: SNat n -> a -> Vector n a
 new SZero     _ = VEmpty
 new (SSucc i) a = a :+ new i a 
 
-snatToFinite :: SNat (Succ n) -> Finite (Succ n) 
-snatToFinite (SSucc SZero) = FZero 
-snatToFinite (SSucc (SSucc n)) = FSucc (snatToFinite (SSucc n))
+withVector :: [a] -> (forall (n :: Nat). SNat n -> Vector n a -> b) -> b 
+withVector []     f = f SZero VEmpty 
+withVector (x:xs) f = withVector xs $ \len vs -> f (SSucc len) (x :+ vs)  
 
 -- | Indexing into a vector (poor performance)
 --   but is safe 
@@ -117,13 +118,6 @@ deleteFirst (_ :+ xs) = xs
 deleteLast :: Vector (Succ n) a -> Vector n a 
 deleteLast (_ :+ VEmpty)    = VEmpty
 deleteLast (x :+ (y :+ ys)) = x :+ deleteLast (y :+ ys)
-
-{-
-type family LessThan (a :: Nat) (b :: Nat) = c where 
-  LessThan Zero b = True 
-  LessThan (Succ a) (Succ b) = LessThan a b 
-  LessThan a Zero = False -- TypeError (Text "a must be less than b")
--}
 
 -- | This function gets all possible vector combinations
 --   where the elements come from a bounded enumeration 
