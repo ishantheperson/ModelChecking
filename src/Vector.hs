@@ -127,6 +127,10 @@ withVector2 :: [a] -> (forall (n :: Nat). SNat (Succ (Succ n)) -> Vector (Succ (
 withVector2 (x:y:[]) f = f (SSucc (SSucc SZero)) $ x :+ y :+ VEmpty
 withVector2 (x:y:ys) f = withVector2 (y:ys) $ \len vs -> f (SSucc len) (x :+ vs)
 
+withVector3 :: [a] -> (forall (n :: Nat). SNat (Succ (Succ (Succ n))) -> Vector (Succ (Succ (Succ n))) a -> b) -> b
+withVector3 (x:y:z:[]) f = f (SSucc $ SSucc $ SSucc SZero) $ x :+ y :+ z :+ VEmpty
+withVector3 (x:y:z:xs) f = withVector3 (y:z:xs) $ \len vs -> f (SSucc len) (x :+ vs)
+
 -- | Creates a new vector of the given size using a function 
 newWith :: SNat n -> (Finite n -> a) -> Vector n a
 newWith SZero     _ = VEmpty
@@ -143,6 +147,11 @@ indexOf (x :+ xs) a f = if a == x
                           then f FZero 
                           else indexOf xs a (f . FSucc)
 
+withIndices :: Vector n a -> b -> (Finite n -> a -> b -> b) -> b 
+withIndices (x :+ VEmpty) b f = f FZero x b 
+withIndices (x :+ xs) b f = withIndices xs (f FZero x b) $ 
+  \i e accum -> f (FSucc i) e accum 
+                          
 -- | Indexing into a vector (poor performance)
 --   but is safe. If we cared about performance
 --   we wouldn't have written the project in a functional
@@ -207,3 +216,7 @@ mkFinite :: Int -> Q Exp
 mkFinite 0         = [| FZero |]
 mkFinite i | i > 0 = [| FSucc $(mkFinite $ pred i) |]
 mkFinite other     = error $ "mkFinite " ++ show other ++ ": must be nonnegative"
+
+-- mkVector :: [a] -> Q Exp 
+-- mkVector []     = [| VEmpty |]
+-- mkVector (x:xs) = [| x :+ $(mkVector xs) |]

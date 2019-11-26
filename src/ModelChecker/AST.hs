@@ -21,6 +21,7 @@ data Matrix =
   | And Matrix Matrix 
   | RelatedTo Matrix Matrix -- ^ a -> b
   | Equals Matrix Matrix    -- ^ a == b
+  | TernaryOp String String String -- ^ a + b == c
   | Variable String 
     deriving Show
 
@@ -43,3 +44,4 @@ printMatrix = \case
   RelatedTo a b -> "(" ++ printMatrix a ++ ") -> (" ++ printMatrix b ++ ")"
   Equals a b ->  "(" ++ printMatrix a ++ ") == (" ++ printMatrix b ++ ")"
   Variable s -> s 
+  TernaryOp a b c -> a ++ " + " ++ b ++ " = " ++ c 

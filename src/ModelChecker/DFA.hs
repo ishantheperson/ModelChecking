@@ -104,7 +104,7 @@ determinize :: Ord a => DFA a b c -> DFA (Set a) b c
 determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
   where states' = Set.powerSet (states t)
         isFinalState' s = any (isFinalState t) s 
-        isInitialState' s = s == Set.filter (isInitialState t) (states t) 
+        isInitialState' = all (isFinalState t) 
         transitionFunction' (state, symbol) = 
           [Set.fold Set.union Set.empty (Set.map (Set.fromList . \s -> (transitionFunction t) (s, symbol)) state)]
 

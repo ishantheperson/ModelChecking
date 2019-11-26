@@ -27,7 +27,21 @@ quantifier = quant "forall" Forall <|> quant "exists" Exists
 matrix, term :: Parser Matrix 
 -- | Parses the non-quantifier portion of the formula 
 matrix = buildExpressionParser operators term <?> "expression"
-term = parens matrix <|> Variable <$> identifier <?> "expression"
+term =  parens matrix 
+    <|> ternary 
+    <?> "expression"
+
+ternary = do 
+  a <- identifier 
+  sawPlus <- optionMaybe $ reservedOp "+"
+  case sawPlus of 
+    Nothing -> return $ Variable a 
+    Just _ -> do 
+      b <- identifier
+      (reservedOp "=" <|> reservedOp "==") <?> "equals"
+      c <- identifier
+      return $ TernaryOp a b c 
+
 
 operators = [[Prefix (Negation <$ choice [reservedOp "~", reservedOp "!"])],
              [mkOp "="  Equals,
