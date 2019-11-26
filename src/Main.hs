@@ -9,6 +9,7 @@ import ModelChecker.MakeTransducer
 import SampleModel 
 import Vector
 
+import Data.List (intercalate)
 import Data.Functor 
 import Control.Monad 
 import Control.Arrow ((>>>))
@@ -62,5 +63,6 @@ main = do
   case msentence of 
     Left err -> putStrLn $ show err 
     Right sentence -> let valid = mkTransducer sentence 
-                      in putStrLn $ "Formula is " ++ show valid 
+                      in print valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
+                      -- in putStrLn $ "Formula is " ++ show valid 
 #endif 

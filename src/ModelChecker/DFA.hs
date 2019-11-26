@@ -3,10 +3,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
+
 module ModelChecker.DFA (
   DFA(..), 
   toAdjacencyMatrix,
   accepts, empty, 
+  getInitialState,
   productMachine, negateMachine) where 
 
 import Vector 
@@ -16,6 +18,8 @@ import qualified Data.Set as Set
 import Data.Foldable (find)
 
 import Control.Monad.State 
+import Debug.Trace 
+
 
 -- | Represents a nondeterministic automata
 -- 
@@ -69,7 +73,7 @@ accepts t = go [getInitialState t] -- TODO: possibly multiple initial states
 empty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
               DFA node sigma arity -> Bool
 empty t = Set.null . Set.filter (isFinalState t) $ reachable
-  where dfs :: MonadState (Set node) m => node -> [node] -> m ()
+  where dfs :: MonadState (Set node) m => node -> Set node -> m ()
         dfs currentNode next = do 
           visited <- get 
 
@@ -79,12 +83,12 @@ empty t = Set.null . Set.filter (isFinalState t) $ reachable
               modify $ Set.insert currentNode 
 
               let destinations = getDestinations t currentNode \\ visited 
-              case Set.toList destinations <> next of 
+              case Set.toList $ destinations `Set.union` next of 
                 [] -> return () 
-                x:xs -> dfs x xs 
+                x:xs -> dfs x (Set.fromList xs) 
 
         reachable :: Set node
-        reachable = execState (dfs (getInitialState t) []) Set.empty   
+        reachable = execState (dfs (getInitialState t) Set.empty) Set.empty   
 
 -- | Constructs a DFA from t1 and t2 
 --   where \( L(t1 \texttt{ `productMachine` } t2) = L(t_1) \cap L(t_2) \) 
@@ -102,14 +106,17 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
 -- | Converts a non-deterministic machine to a deterministic one                                                       
 determinize :: Ord a => DFA a b c -> DFA (Set a) b c 
 determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
-  where states' = Set.powerSet (states t)
+  where states' = Set.powerSet (states t) -- Can we make this smaller   
         isFinalState' s = any (isFinalState t) s 
         isInitialState' = all (isFinalState t) 
         transitionFunction' (state, symbol) = 
           [Set.fold Set.union Set.empty (Set.map (Set.fromList . \s -> (transitionFunction t) (s, symbol)) state)]
 
--- | Constructions the complement of a DFA           
+-- | Constructions the complement of a DFA       
+-- TODO: determinization currently is highly highly highly exponential.
+--       We need to     
 negateMachine :: Ord a => DFA a b c -> DFA (Set a) b c
 negateMachine t = 
   let determinized = determinize t 
-  in determinized { isFinalState = not . isFinalState determinized }
+  in trace ("negating (dfa size: " ++ show (Set.size (states determinized)) ++ " states)") $ 
+        determinized { isFinalState = not . isFinalState determinized }
