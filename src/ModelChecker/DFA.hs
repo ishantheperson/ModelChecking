@@ -98,6 +98,18 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
         transitionFunction' ((n1, n2), e) = [(a, b) | a <- transitionFunction t1 (n1, e),
                                                       b <- transitionFunction t2 (n2, e) ]
 
+
+-- | Converts a non-deterministic machine to a deterministic one                                                       
+determinize :: Ord a => DFA a b c -> DFA (Set a) b c 
+determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
+  where states' = Set.powerSet (states t)
+        isFinalState' s = any (isFinalState t) s 
+        isInitialState' s = s == Set.filter (isInitialState t) (states t) 
+        transitionFunction' (state, symbol) = 
+          [Set.fold Set.union Set.empty (Set.map (Set.fromList . \s -> (transitionFunction t) (s, symbol)) state)]
+
 -- | Constructions the complement of a DFA           
-negateMachine :: DFA a b c -> DFA a b c
-negateMachine t1 = t1 { isFinalState = not . isFinalState t1 }
+negateMachine :: Ord a => DFA a b c -> DFA (Set a) b c
+negateMachine t = 
+  let determinized = determinize t 
+  in determinized { isFinalState = not . isFinalState determinized }
