@@ -58,8 +58,8 @@ getDestinations t n =
 
 -- | Tests whether the DFA accepts a given string   
 accepts :: forall node sigma arity. DFA node sigma arity -> [Vector arity sigma] -> Bool 
-accepts t = go [getInitialState t]
-  where go :: [node] -> [Vector arity sigma] -> Bool
+accepts t = go [getInitialState t] -- TODO: possibly multiple initial states 
+  where go :: [node] -> [Vector arity sigma] -> Bool -- FIXME: This should be a set of states
         go subset = \case 
           [] -> any (isFinalState t) subset  
           x:xs -> go (concatMap (\s -> transitionFunction t (s, x)) subset) xs 

@@ -27,8 +27,10 @@ extend mapping t = DFA (states t) arity' (isFinalState t) (isInitialState t) tra
 
 -- | Extends a DFA to several more tracks, using the given mapping to control which "tracks"
 --   are actually used. It also takes in a witness to how many more tracks should be added.     
-extendN :: forall node sigma n m. Vector n (Finite (n + m)) -> SNat (n + m) 
-                                    -> DFA node sigma n -> DFA node sigma (n + m)
+extendN :: forall node sigma n m. Vector n (Finite (n + m)) 
+                               -> SNat (n + m) 
+                               -> DFA node sigma n 
+                               -> DFA node sigma (n + m)
 extendN mapping m t = DFA (states t) arity' (isFinalState t) (isInitialState t) transitionFunction'
   -- This seems to work with AllowAmbiguousTypes, but if not then we need a witness for m
   -- which is the value of type (SNat m)
@@ -39,7 +41,10 @@ extendN mapping m t = DFA (states t) arity' (isFinalState t) (isInitialState t) 
           let delta = transitionFunction t 
           in delta (current, index input <$> mapping)
 
-deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma) => DFA node sigma n -> Finite n -> DFA node sigma n 
+deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma) 
+                                 => DFA node sigma n 
+                                 -> Finite n 
+                                 -> DFA node sigma n 
 deleteTrack t i = t { transitionFunction = transitionFunction' }
   where transitionFunction' :: (node, Vector n sigma) -> [node]
         transitionFunction' (current, input) = 

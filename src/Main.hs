@@ -1,19 +1,25 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 import ModelChecker.Parser
 import ModelChecker.DFA 
 import ModelChecker.AST
+import ModelChecker.MakeTransducer
 
 import SampleModel 
 import Vector
 
+import Data.Functor 
 import Control.Monad 
+import Control.Arrow ((>>>))
+
 import System.IO
 
 #define TEST_PARSER 0 
 #define TEST_DFA 1 
+#define TEST_TRANSDUCER 2 
 
-#define CURRENT_TEST TEST_PARSER 
+#define CURRENT_TEST TEST_TRANSDUCER 
 
 main :: IO () 
 #if CURRENT_TEST == TEST_PARSER
@@ -46,4 +52,15 @@ main = do
         ioGuard condition msg = 
           unless condition $ do putStrLn $ "error: " ++ msg 
                                 exitFailure 
+
+#elif CURRENT_TEST == TEST_TRANSDUCER 
+main = do 
+  putStrLn "Please enter a sentence in FOL: "
+  
+  msentence <- getLine <&> parseString 
+
+  case msentence of 
+    Left err -> putStrLn $ show err 
+    Right sentence -> let valid = mkTransducer sentence 
+                      in putStrLn $ "Formula is " ++ show valid 
 #endif 

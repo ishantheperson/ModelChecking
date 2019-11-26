@@ -31,11 +31,11 @@ term = parens matrix <|> Variable <$> identifier <?> "expression"
 
 operators = [[Prefix (Negation <$ choice [reservedOp "~", reservedOp "!"])],
              [mkOp "="  Equals,
-              mkOp "==" Equals],
-             [mkOp "&&" And,
+              mkOp "==" Equals,
               mkOp "->" RelatedTo,
-              mkOp "||" convertOr,
               mkOp "!=" convertNotEqual],
+             [mkOp "&&" And,
+              mkOp "||" convertOr],
              [mkOp "=>" convertImplies]]
   where mkOp s f = Infix (f <$ reservedOp s) AssocLeft
 

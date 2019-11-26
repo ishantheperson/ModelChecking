@@ -19,8 +19,8 @@ data Quantifier =
 data Matrix = 
     Negation Matrix 
   | And Matrix Matrix 
-  | RelatedTo Matrix Matrix 
-  | Equals Matrix Matrix 
+  | RelatedTo Matrix Matrix -- ^ a -> b
+  | Equals Matrix Matrix    -- ^ a == b
   | Variable String 
     deriving Show
 

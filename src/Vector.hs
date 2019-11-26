@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE PackageImports #-}
@@ -9,6 +10,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE EmptyCase #-}
+
 module Vector where 
   
 import Control.Applicative  
@@ -17,6 +21,7 @@ import "template-haskell" Language.Haskell.TH
 -- | Represents a natural number as a type
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
 
+-- TODO: injectivity? 
 type family (n :: Nat) + (m :: Nat) = (c :: Nat) where 
   Zero     + m = m 
   (Succ n) + m = Succ (n + m)
@@ -34,6 +39,29 @@ data SNat n where
 
 deriving instance Show (SNat a)   
 
+data LessThanEqual :: Nat -> Nat -> * where 
+  LTEZero :: LessThanEqual Zero m 
+  LTESucc :: LessThanEqual n m -> LessThanEqual (Succ n) (Succ m)
+
+deriving instance Show (LessThanEqual a b)  
+
+data Void 
+type Refuted a = (a -> Void)
+data Decision a = Proved a   
+                | Disproved (Refuted a)
+
+lessThanEqual :: SNat n -> SNat m -> Decision (LessThanEqual n m)
+lessThanEqual SZero _ = Proved LTEZero 
+lessThanEqual (SSucc n) SZero = Disproved (\case { })
+lessThanEqual (SSucc n) (SSucc m) = 
+  case lessThanEqual n m of 
+    Proved l -> Proved $ LTESucc l 
+    Disproved p -> Disproved $ \case LTESucc l -> p l 
+
+atLeast :: SNat n -> Vector m a -> Maybe (LessThanEqual n m, Vector m a)    
+--atLeast :: SNat n -> Vector m a -> Maybe (LessThanEqual n m, Vector (n + k) a)
+atLeast n v = case lessThanEqual n (vlength v) of 
+
 -- | Represents a vector parameterized by its 
 --   length as well as its data type. 
 data Vector n a where 
@@ -47,7 +75,7 @@ instance Functor (Vector n) where
   fmap f (x :+ xs) = f x :+ fmap f xs
 
 instance Foldable (Vector n) where   
-  foldMap f VEmpty = mempty 
+  foldMap _ VEmpty = mempty 
   foldMap f (x :+ xs) = f x <> foldMap f xs 
 
 infixr 5 :+
@@ -95,11 +123,20 @@ withVector :: [a] -> (forall (n :: Nat). SNat n -> Vector n a -> b) -> b
 withVector []     f = f SZero VEmpty 
 withVector (x:xs) f = withVector xs $ \len vs -> f (SSucc len) (x :+ vs)  
 
+withVector2 :: [a] -> (forall (n :: Nat). SNat (Succ (Succ n)) -> Vector (Succ (Succ n)) a -> b) -> b
+withVector2 (x:y:[]) f = f (SSucc (SSucc SZero)) $ x :+ y :+ VEmpty
+withVector2 (x:y:ys) f = withVector2 (y:ys) $ \len vs -> f (SSucc len) (x :+ vs)
+
 -- | Creates a new vector of the given size using a function 
 newWith :: SNat n -> (Finite n -> a) -> Vector n a
 newWith SZero     _ = VEmpty
 newWith (SSucc i) f = f FZero :+ newWith i (f . FSucc)
 
+vlength :: Vector n a -> SNat n
+vlength VEmpty = SZero 
+vlength (_ :+ xs) = SSucc (vlength xs)
+
+-- | Gets the index of an element in a vector. Crashes if it does not exist 
 indexOf :: Eq a => Vector n a -> a -> (Finite n -> b) -> b 
 indexOf VEmpty    _ _ = error "Cannot find"
 indexOf (x :+ xs) a f = if a == x 
@@ -170,49 +207,3 @@ mkFinite :: Int -> Q Exp
 mkFinite 0         = [| FZero |]
 mkFinite i | i > 0 = [| FSucc $(mkFinite $ pred i) |]
 mkFinite other     = error $ "mkFinite " ++ show other ++ ": must be nonnegative"
-
-{-
-data Nat1 = Zero | Succ Nat1
-
-type family NSucc  (n :: Nat) = (c :: Nat) | c -> n where 
-  NSucc i = 1 + i
-
-type family FromNat1 (n :: Nat1) = (c :: Nat) -- | c -> n 
-type instance FromNat1 (Zero)     = 0
-type instance FromNat1 (Succ n) = 1 + FromNat1 n
-
-getAllVectors :: forall s n. KnownNat n => [s] -> nq -> [Vector n s]
-getAllVectors s 0 = [Vec.empty]
-getAllVectors s x = Vec.cons <$> s <*> getAllVectors s (x - 1)
-
--- type instance FromNat1 Zero     = 0
--- type instance FromNat1 (Succ n) = 1 + FromNat1 n
-
-class Go (n :: Nat1) where 
-  go :: [a] -> Nat1 -> [Vector (FromNat1 n) a]
-
-instance Go Zero where 
-  go s Zero = [Vec.empty]
-
-instance Go n => Go (Succ n) where 
-  go s (Succ n) = getAllVectors s (go s n)
-
-getAllVectors :: forall a b. [a] -> [Vector b a] -> [Vector (1 + b) a]
-getAllVectors s vs = Vec.cons <$> s <*> vs 
-  -}
-
-{-
-go :: forall a b. [a] -> b -> [Vector b a]
-go s Proxy  = [Vec.empty]
-go s (Succ x) = getAllVectors s (go s x)
-
-getAllVectors :: forall a b. [a] -> [Vector b a] -> [Vector (1 + b) a]
-getAllVectors s vs = Vec.cons <$> s <*> vs 
--}
--- getAllVectors s n : gets all vectors of size n with elements in s 
---getAllVectors :: Foldable f => f a -> b -> [Vector b a]
-{-
-getAllVectors :: forall s n. [s] -> Nat1 -> [Vector (FromNat1 n) s]
-getAllVectors s Zero = [Vec.empty]
-getAllVectors s (Succ x) = Vec.cons <$> s <*> getAllVectors s x
--}
