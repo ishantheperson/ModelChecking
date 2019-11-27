@@ -1,6 +1,11 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+
+#if __GLASGOW_HASKELL__ < 800 
+#error "GHC v8.0 is required to build"
+#endif 
+
 import ModelChecker.Parser
 import ModelChecker.DFA 
 import ModelChecker.AST
@@ -12,9 +17,11 @@ import Vector
 import Data.List (intercalate)
 import Data.Functor 
 import Control.Monad 
+import Control.Monad.IO.Class
 import Control.Arrow ((>>>))
 
 import System.IO
+import System.Console.Haskeline
 
 -- Prints out parse tree
 #define TEST_PARSER 0     
@@ -58,14 +65,17 @@ main = do
                                 exitFailure 
 
 #elif CURRENT_TEST == TEST_TRANSDUCER 
-main = do 
-  putStrLn "Please enter a sentence in FOL: "
+main = runInputT settings $ do 
+  outputStrLn "Please enter a sentence in FOL: "
   
-  msentence <- getLine <&> parseString 
+  msentence <- getInputLine "> " <&> (fmap parseString)
 
   case msentence of 
-    Left err -> putStrLn $ show err 
-    Right sentence -> let valid = mkTransducer (sentence)
-                      in print valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
+    Nothing -> return () 
+    Just (Left err) -> outputStrLn $ show err 
+    Just (Right sentence) -> 
+      let valid = mkTransducer (sentence)
+      in (liftIO . print) valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
                       -- in putStrLn $ "Formula is " ++ show valid 
+  where settings = defaultSettings { historyFile = Just ".mcheck_history" }                      
 #endif 

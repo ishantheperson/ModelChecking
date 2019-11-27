@@ -130,7 +130,7 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
 determinize :: Ord a => DFA a b c -> DFA (Set a) b c 
 determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
   where states' = Set.powerSet (states t) -- FIXME: Can we make this smaller   
-        isFinalState' s = any (isFinalState t) s 
+        isFinalState'   = any (isFinalState t) 
         isInitialState' = all (isFinalState t) 
         transitionFunction' (state, symbol) = 
           [Set.fold Set.union Set.empty (Set.map (Set.fromList . \s -> (transitionFunction t) (s, symbol)) state)]
