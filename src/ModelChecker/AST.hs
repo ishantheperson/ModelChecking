@@ -25,6 +25,11 @@ data Matrix =
   | Variable String 
     deriving Show
 
+simplify :: Matrix -> Matrix 
+simplify = \case 
+  (Negation (Negation a)) -> a 
+  a -> a 
+
 convertImplies, convertOr, convertNotEqual :: Matrix -> Matrix -> Matrix 
 convertImplies a b = Negation a `convertOr` b 
 convertOr a b = Negation (Negation a `And` Negation b)

@@ -91,17 +91,39 @@ empty t = Set.null . Set.filter (isFinalState t) $ reachable
         reachable :: Set node
         reachable = execState (dfs (getInitialState t) Set.empty) Set.empty   
 
+findAcceptedString :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
+                          DFA node sigma arity -> Maybe [node]        
+findAcceptedString t = evalState (dfs (getInitialState t) Set.empty) Set.empty  
+  where dfs :: MonadState (Set node) m => node -> Set node -> m (Maybe [node]) 
+        dfs currentNode next = do 
+          visited <- get 
+          
+          if Set.member currentNode visited 
+            then return Nothing 
+            else do 
+              modify $ Set.insert currentNode 
+
+              if (isFinalState t) currentNode
+                then return $ Just [currentNode]
+                else let destinations = getDestinations t currentNode \\ visited 
+                     in case Set.toList $ destinations `Set.union` next of 
+                          [] -> return Nothing 
+                          x:xs -> do searchResult <- dfs x (Set.fromList xs)
+                                     case searchResult of 
+                                       Nothing -> return Nothing 
+                                       Just path -> return (Just $ currentNode:path)
+
 -- | Constructs a DFA from t1 and t2 
 --   where \( L(t1 \texttt{ `productMachine` } t2) = L(t_1) \cap L(t_2) \) 
-productMachine :: DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
+productMachine :: (Eq n1, Eq n2) => DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
 productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transitionFunction' 
   where states' = states t1 `Set.cartesianProduct` states t2
         arity' = arity t1
         isFinalState' (n1, n2) = isFinalState t1 n1 && isFinalState t2 n2 
         isInitialState' (n1, n2) = isInitialState t1 n1 && isInitialState t2 n2 
 
-        transitionFunction' ((n1, n2), e) = [(a, b) | a <- transitionFunction t1 (n1, e),
-                                                      b <- transitionFunction t2 (n2, e) ]
+        transitionFunction' ((n1, n2), e) = nub [(a, b) | a <- transitionFunction t1 (n1, e),
+                                                          b <- transitionFunction t2 (n2, e) ]
 
 
 -- | Converts a non-deterministic machine to a deterministic one                                                       
@@ -116,8 +138,10 @@ determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFu
 -- | Constructions the complement of a DFA       
 -- TODO: determinization currently is highly highly highly exponential.
 --       We need to     
-negateMachine :: Ord a => DFA a b c -> DFA (Set a) b c
-negateMachine t = 
-  let determinized = determinize t 
-  in trace ("negating (dfa size: " ++ show (Set.size (states determinized)) ++ " states)") $ 
-        determinized { isFinalState = not . isFinalState determinized }
+negateMachine t = t { isFinalState = not . isFinalState t }
+-- This code is buggy. I don't know why 
+-- negateMachine :: Ord a => DFA a b c -> DFA (Set a) b c
+-- negateMachine t = 
+--   let determinized = determinize t 
+--   in trace ("negating (dfa size: " ++ show (Set.size (states determinized)) ++ " states)") $ 
+--         determinized { isFinalState = not . isFinalState determinized }

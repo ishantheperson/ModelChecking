@@ -16,8 +16,11 @@ import Control.Arrow ((>>>))
 
 import System.IO
 
-#define TEST_PARSER 0 
-#define TEST_DFA 1 
+-- Prints out parse tree
+#define TEST_PARSER 0     
+-- Tests addDFA
+#define TEST_DFA 1        
+-- Test model checker 
 #define TEST_TRANSDUCER 2 
 
 #define CURRENT_TEST TEST_TRANSDUCER 
@@ -62,7 +65,7 @@ main = do
 
   case msentence of 
     Left err -> putStrLn $ show err 
-    Right sentence -> let valid = mkTransducer sentence 
+    Right sentence -> let valid = mkTransducer (sentence)
                       in print valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
                       -- in putStrLn $ "Formula is " ++ show valid 
 #endif 

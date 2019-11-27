@@ -18,7 +18,7 @@ import Vector
 
 import Unsafe.Coerce  
 
-import Debug.Trace 
+--import Debug.Trace 
 
 getVar :: Quantifier -> String 
 getVar = \case 
@@ -27,12 +27,13 @@ getVar = \case
 
 --mkTransducer :: forall n ps. Statement -> DFA ps BinaryAlphabet (Succ (Succ n))
 --mkTransducer :: Statement -> Bool 
-mkTransducer (Statement qs m) = withVector (reverse qs) $ \len vars -> 
+mkTransducer :: Statement -> Bool 
+mkTransducer (Statement qs m) = withVector (qs) $ \len vars -> 
   processMatrix m len (getVar <$> vars) $ \transducer ->  --(not . empty)
     let withoutTracks = withIndices vars transducer $ 
           \index quant lastTransducer -> 
             case quant of Exists _ -> deleteTrack lastTransducer index 
-                          Forall _ -> unsafeCoerce $ negateMachine $ deleteTrack (negateMachine lastTransducer) index 
+                          Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index 
     in not . empty $ withoutTracks -- show $ getInitialState withoutTracks --toAdjacencyMatrix withoutTracks
 
 -- This works but we need a full continuation  
