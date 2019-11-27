@@ -13,16 +13,16 @@ import qualified Text.ParserCombinators.Parsec.Token as Tok
 --   a parse error or a fully parsed Statement
 parseString :: String -> Either ParseError Statement 
 parseString = parse (whitespace *> input <* eof) "" 
-  where input = Statement <$> many quantifier <*> matrix 
+  where input = Statement <$> (concat <$> many quantifier) <*> matrix 
 
 -- | Parses one quantifier expression 
-quantifier :: Parser Quantifier
-quantifier = quant "forall" Forall <|> quant "exists" Exists 
+quantifier :: Parser [Quantifier]
+quantifier = quant "forall" Forall <|> quant "exists" Exists <?> "quantifiers"
   where quant string op = do 
           reserved string 
-          name <- identifier 
+          names <- many1 identifier 
           reservedOp "."
-          return $ op name 
+          return $ map op names 
 
 matrix, term :: Parser Matrix 
 -- | Parses the non-quantifier portion of the formula 

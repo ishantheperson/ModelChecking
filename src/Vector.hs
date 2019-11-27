@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE PackageImports #-}
@@ -148,6 +147,7 @@ indexOf (x :+ xs) a f = if a == x
                           else indexOf xs a (f . FSucc)
 
 withIndices :: Vector n a -> b -> (Finite n -> a -> b -> b) -> b 
+withIndices VEmpty b _ = b 
 withIndices (x :+ VEmpty) b f = f FZero x b 
 withIndices (x :+ xs) b f = withIndices xs (f FZero x b) $ 
   \i e accum -> f (FSucc i) e accum 
@@ -162,7 +162,8 @@ index (_ :+ xs) (FSucc i) = index xs i
 
 -- | Updates the given vector at a position. 
 update :: Vector n a -> a -> Finite n -> Vector n a 
-update (_ :+ xs) x FZero     = x :+ xs 
+update VEmpty    _ _         = VEmpty
+update (y :+ xs) x FZero     = x :+ xs 
 update (y :+ xs) x (FSucc i) = y :+ update xs x i 
 
 -- | Cons onto the front of a vector
@@ -190,7 +191,7 @@ getAlphabet :: (Bounded a, Enum a) => SNat n -> [Vector n a]
 getAlphabet = getAllVectors [minBound..maxBound] 
 
 getAllVectors :: [a] -> SNat n -> [Vector n a]
-getAllVectors s SZero     = [VEmpty]
+getAllVectors _ SZero     = [VEmpty]
 getAllVectors s (SSucc x) = (:+) <$> s <*> getAllVectors s x  
 
 fromVec2 :: Vector (Succ (Succ Zero)) a -> (a, a)

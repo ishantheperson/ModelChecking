@@ -27,26 +27,26 @@ getVar = \case
 
 --mkTransducer :: forall n ps. Statement -> DFA ps BinaryAlphabet (Succ (Succ n))
 --mkTransducer :: Statement -> Bool 
-mkTransducer (Statement qs m) = withVector3 (reverse qs) $ \len vars -> 
+mkTransducer (Statement qs m) = withVector (reverse qs) $ \len vars -> 
   processMatrix m len (getVar <$> vars) $ \transducer ->  --(not . empty)
     let withoutTracks = withIndices vars transducer $ 
           \index quant lastTransducer -> 
-            case quant of Exists s -> deleteTrack lastTransducer index 
-                          Forall s -> unsafeCoerce $ negateMachine $ deleteTrack (negateMachine lastTransducer) index 
+            case quant of Exists _ -> deleteTrack lastTransducer index 
+                          Forall _ -> unsafeCoerce $ negateMachine $ deleteTrack (negateMachine lastTransducer) index 
     in not . empty $ withoutTracks -- show $ getInitialState withoutTracks --toAdjacencyMatrix withoutTracks
 
 -- This works but we need a full continuation  
 processMatrix :: forall n b. Matrix 
-                          -> SNat (Succ (Succ (Succ n))) 
-                          -> Vector (Succ (Succ (Succ n))) String 
-                          -> (forall ps. (Show ps, Ord ps) => DFA ps BinaryAlphabet (Succ (Succ (Succ n))) -> b) 
+                          -> SNat n 
+                          -> Vector n String 
+                          -> (forall ps. (Show ps, Ord ps) => DFA ps BinaryAlphabet n -> b)
                           -> b 
 processMatrix m n names f = 
   case m of 
     TernaryOp a b c -> 
-      f (extendN (indexOf names a id :+ indexOf names b id :+ indexOf names c id :+ VEmpty) n addDFA)
+      f (changeSize (indexOf names a id :+ indexOf names b id :+ indexOf names c id :+ VEmpty) n addDFA)
     Equals (Variable a) (Variable b) -> 
-      f (extendN (indexOf names a id :+ indexOf names b id :+ VEmpty) n eqDFA)
+      f (changeSize (indexOf names a id :+ indexOf names b id :+ VEmpty) n eqDFA)
     Negation a -> 
       processMatrix a n names (f . negateMachine)
     And a b -> 

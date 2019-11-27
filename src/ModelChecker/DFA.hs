@@ -13,6 +13,7 @@ module ModelChecker.DFA (
 
 import Vector 
 
+import Data.List (nub)
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set 
 import Data.Foldable (find)
@@ -61,12 +62,12 @@ getDestinations t n =
   Set.fromList $ concatMap (curry (transitionFunction t) n) (getAlphabet (arity t))
 
 -- | Tests whether the DFA accepts a given string   
-accepts :: forall node sigma arity. DFA node sigma arity -> [Vector arity sigma] -> Bool 
+accepts :: forall node sigma arity. Eq node => DFA node sigma arity -> [Vector arity sigma] -> Bool 
 accepts t = go [getInitialState t] -- TODO: possibly multiple initial states 
   where go :: [node] -> [Vector arity sigma] -> Bool -- FIXME: This should be a set of states
         go subset = \case 
           [] -> any (isFinalState t) subset  
-          x:xs -> go (concatMap (\s -> transitionFunction t (s, x)) subset) xs 
+          x:xs -> go (nub $ concatMap (\s -> transitionFunction t (s, x)) subset) xs 
 
 -- | Tests whether the language of the DFA is empty
 --   by performing DFS           
@@ -106,7 +107,7 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
 -- | Converts a non-deterministic machine to a deterministic one                                                       
 determinize :: Ord a => DFA a b c -> DFA (Set a) b c 
 determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
-  where states' = Set.powerSet (states t) -- Can we make this smaller   
+  where states' = Set.powerSet (states t) -- FIXME: Can we make this smaller   
         isFinalState' s = any (isFinalState t) s 
         isInitialState' = all (isFinalState t) 
         transitionFunction' (state, symbol) = 
