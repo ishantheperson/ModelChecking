@@ -4,12 +4,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
+-- {-# LANGUAGE AllowAmbiguousTypes #-}
 module ModelChecker.Transducer where 
 
 import Vector   
 import ModelChecker.DFA 
 import SampleModel 
+
+import Data.List (nub)
 
 -- | Changes the size of a DFA, given a mapping to the new tracks.
 --   e.g. changeSize (FZer0 :+ FZero :+ VEmpty) $(mkSnat 1) eqDFA
@@ -24,7 +26,8 @@ changeSize mapping m t = t { arity = m, transitionFunction = transitionFunction'
           let delta = transitionFunction t 
           in delta (current, index input <$> mapping)
 
-deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma) 
+-- Quantify "exists" on transducer @t@ on track @i@           
+deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma, Eq node) 
                                  => DFA node sigma n 
                                  -> Finite n 
                                  -> DFA node sigma n 
@@ -32,7 +35,10 @@ deleteTrack t i = t { transitionFunction = transitionFunction' }
   where transitionFunction' :: (node, Vector n sigma) -> [node]
         transitionFunction' (current, input) = 
           let replacedVectors = map (\c -> update input c i) [minBound..maxBound] 
-          in concatMap (curry (transitionFunction t) current) replacedVectors 
+          in nub $ concatMap (curry (transitionFunction t) current) replacedVectors 
+
+        -- FIXME: The bug is a problem in the accepting condition of nondeterminism. 
+        -- isFinalState' = undefined 
 
 -- Example:           
 -- eq4 = changeSize ($(mkFinite 0) :+ $(mkFinite 2) :+ VEmpty) $(mkSnat 4) eqDFA 

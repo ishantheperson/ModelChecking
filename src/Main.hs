@@ -67,15 +67,20 @@ main = do
 #elif CURRENT_TEST == TEST_TRANSDUCER 
 main = runInputT settings $ do 
   outputStrLn "Please enter a sentence in FOL: "
-  
-  msentence <- getInputLine "> " <&> (fmap parseString)
+  loop
 
-  case msentence of 
-    Nothing -> return () 
-    Just (Left err) -> outputStrLn $ show err 
-    Just (Right sentence) -> 
-      let valid = mkTransducer (sentence)
-      in (liftIO . print) valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
-                      -- in putStrLn $ "Formula is " ++ show valid 
   where settings = defaultSettings { historyFile = Just ".mcheck_history" }                      
+        loop = do 
+          msentence <- getInputLine "> " <&> (fmap parseString)
+
+          case msentence of 
+            Nothing -> return () 
+            Just (Left err) -> do 
+              outputStrLn $ show err
+              loop 
+            Just (Right sentence) -> do 
+              let valid = mkTransducer sentence
+              outputStrLn $ show valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
+              loop   -- in putStrLn $ "Formula is " ++ show valid 
+
 #endif 

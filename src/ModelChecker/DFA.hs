@@ -19,8 +19,8 @@ import qualified Data.Set as Set
 import Data.Foldable (find)
 
 import Control.Monad.State 
-import Debug.Trace 
 
+import Debug.Trace 
 
 -- | Represents a nondeterministic automata
 -- 
@@ -51,9 +51,9 @@ toAdjacencyMatrix t = map processState nodeList
 --   Precondition: @isInitialState$ must return @True@ for at least one state in
 --   @states@
 getInitialState t = 
-  case find (isInitialState t) (states t) of 
-    Just s -> s 
-    Nothing -> error "No initial state found in given automata!"
+  case Set.toList $ Set.filter (isInitialState t) (states t) of 
+    [] -> error "No initial state found in given automata!"
+    other -> other 
 
 -- | Gets the set of all states reachable from this one 
 getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
@@ -63,7 +63,7 @@ getDestinations t n =
 
 -- | Tests whether the DFA accepts a given string   
 accepts :: forall node sigma arity. Eq node => DFA node sigma arity -> [Vector arity sigma] -> Bool 
-accepts t = go [getInitialState t] -- TODO: possibly multiple initial states 
+accepts t = go $ getInitialState t -- TODO: possibly multiple initial states 
   where go :: [node] -> [Vector arity sigma] -> Bool -- FIXME: This should be a set of states
         go subset = \case 
           [] -> any (isFinalState t) subset  
@@ -71,29 +71,35 @@ accepts t = go [getInitialState t] -- TODO: possibly multiple initial states
 
 -- | Tests whether the language of the DFA is empty
 --   by performing DFS           
-empty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
+empty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma, Show node) => 
               DFA node sigma arity -> Bool
-empty t = Set.null . Set.filter (isFinalState t) $ reachable
+empty t = Set.null $ Set.filter (isFinalState t) $ reachable
   where dfs :: MonadState (Set node) m => node -> Set node -> m ()
         dfs currentNode next = do 
+          -- traceM $ show currentNode
+
           visited <- get 
+          -- Is there a bug here? It seems like Sink should always be reachable, but its not... 
 
           if Set.member currentNode visited 
-            then return ()
+            then case Set.toList next of 
+              [] -> return () 
+              x:xs -> dfs x (Set.fromList xs)
+
             else do 
               modify $ Set.insert currentNode 
 
-              let destinations = getDestinations t currentNode \\ visited 
+              let destinations = getDestinations t currentNode -- \\ visited 
               case Set.toList $ destinations `Set.union` next of 
-                [] -> return () 
-                x:xs -> dfs x (Set.fromList xs) 
+                [] -> return ()
+                x:xs -> dfs x (Set.fromList xs)
 
         reachable :: Set node
-        reachable = execState (dfs (getInitialState t) Set.empty) Set.empty   
+        reachable = traceShowId $ execState (dfs (head $ getInitialState t) Set.empty) Set.empty   
 
 findAcceptedString :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
                           DFA node sigma arity -> Maybe [node]        
-findAcceptedString t = evalState (dfs (getInitialState t) Set.empty) Set.empty  
+findAcceptedString t = evalState (dfs (head $ getInitialState t) Set.empty) Set.empty  
   where dfs :: MonadState (Set node) m => node -> Set node -> m (Maybe [node]) 
         dfs currentNode next = do 
           visited <- get 
@@ -118,8 +124,8 @@ findAcceptedString t = evalState (dfs (getInitialState t) Set.empty) Set.empty
 productMachine :: (Eq n1, Eq n2) => DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
 productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transitionFunction' 
   where states' = states t1 `Set.cartesianProduct` states t2
-        arity' = arity t1
-        isFinalState' (n1, n2) = isFinalState t1 n1 && isFinalState t2 n2 
+        arity'  = arity t1
+        isFinalState'   (n1, n2) = isFinalState   t1 n1 && isFinalState   t2 n2 
         isInitialState' (n1, n2) = isInitialState t1 n1 && isInitialState t2 n2 
 
         transitionFunction' ((n1, n2), e) = nub [(a, b) | a <- transitionFunction t1 (n1, e),
@@ -129,7 +135,7 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
 -- | Converts a non-deterministic machine to a deterministic one                                                       
 determinize :: Ord a => DFA a b c -> DFA (Set a) b c 
 determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFunction'
-  where states' = Set.powerSet (states t) -- FIXME: Can we make this smaller   
+  where states'         = Set.powerSet (states t) -- FIXME: Can we make this smaller   
         isFinalState'   = any (isFinalState t) 
         isInitialState' = all (isFinalState t) 
         transitionFunction' (state, symbol) = 
@@ -139,7 +145,7 @@ determinize t = DFA states' (arity t) isFinalState' isInitialState' transitionFu
 -- TODO: determinization currently is highly highly highly exponential.
 --       We need to     
 negateMachine t = t { isFinalState = not . isFinalState t }
--- This code is buggy. I don't know why 
+-- This code is (was?) buggy...I don't know why 
 -- negateMachine :: Ord a => DFA a b c -> DFA (Set a) b c
 -- negateMachine t = 
 --   let determinized = determinize t 

@@ -25,16 +25,34 @@ getVar = \case
   Forall s -> s 
   Exists s -> s 
 
---mkTransducer :: forall n ps. Statement -> DFA ps BinaryAlphabet (Succ (Succ n))
---mkTransducer :: Statement -> Bool 
+-- FIXME: It seems that if there are extra variables, this gives the wrong answer. 
+--        Might be due to how we always negate in a forall... 
 mkTransducer :: Statement -> Bool 
-mkTransducer (Statement qs m) = withVector (qs) $ \len vars -> 
+mkTransducer (Statement qs m) = withVector (reverse qs) $ \len vars -> -- Reverse to eliminate quantifiers from inner to outer
   processMatrix m len (getVar <$> vars) $ \transducer ->  --(not . empty)
     let withoutTracks = withIndices vars transducer $ 
           \index quant lastTransducer -> 
-            case quant of Exists _ -> deleteTrack lastTransducer index 
-                          Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index 
-    in not . empty $ withoutTracks -- show $ getInitialState withoutTracks --toAdjacencyMatrix withoutTracks
+            case quant of Exists _ -> deleteTrack lastTransducer index
+                          -- Need to logically negate the _result_ not the machine?
+                          -- forall x. phi is the same as exists not x. !phi 
+                          -- But one of those is negating the matrix...but
+                          -- the other one is just negating the result directly?
+                          -- (the truth value of the expression)
+                          -- This current solution seems hackish. Maybe instead we could 
+                          -- in order to get rid of this? That seems like a better solution. 
+                          
+                          -- The issue is in something like
+                          -- > forall a. a + a = a === !(exists a. a + a = a)
+                          -- It's true that 
+                          -- > exists a. a + a = a
+                          -- and also that 
+                          -- > exists a. !(a + a = a)
+                          -- Do we have to "evaluate" the inner negation first? 
+                          -- This doesn't always seem possible.
+                          -- > forall b. forall a. (b = b) => (a + a = a)
+                          -- => forall b. ! (exists a. !(b = b => (a + a = a))) 
+                          Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index
+    in (not . empty) withoutTracks -- show $ getInitialState withoutTracks --toAdjacencyMatrix withoutTracks
 
 -- This works but we need a full continuation  
 processMatrix :: forall n b. Matrix 
