@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 #if __GLASGOW_HASKELL__ < 800 
-#error "GHC v8.0 is required to build"
+#warning "GHC v8.0 is required to build most modules"
 #endif 
 
 import ModelChecker.Parser
@@ -71,7 +71,7 @@ main = runInputT settings $ do
 
   where settings = defaultSettings { historyFile = Just ".mcheck_history" }                      
         loop = do 
-          msentence <- getInputLine "> " <&> (fmap parseString)
+          msentence <- getInputLine "> " <&> fmap parseString
 
           case msentence of 
             Nothing -> return () 

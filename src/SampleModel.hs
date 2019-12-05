@@ -41,6 +41,17 @@ addTransition (state, v) = pure $ case (state, fromVec3 v) of
 addDFA :: DFA AddState BinaryAlphabet (Succ (Succ (Succ Zero)))
 addDFA = DFA addStates $(mkSnat 3) addIsFinal addIsInitial addTransition
 
+succDFA :: DFA AddState BinaryAlphabet (Succ (Succ Zero))
+succDFA = DFA addStates $(mkSnat 2) (== NoCarry) (== Carry) succTransition 
+  where succTransition (state, v) = pure $ case (state, fromVec2 v) of 
+          (Sink, _) -> Sink 
+          (Carry, (0, 1)) -> NoCarry
+          (Carry, (1, 0)) -> Carry
+          (NoCarry, (0, 0)) -> NoCarry
+          (NoCarry, (1, 1)) -> NoCarry
+          _ -> Sink 
+
+
 data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 
 -- Example:

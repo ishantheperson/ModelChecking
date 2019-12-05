@@ -31,11 +31,11 @@ deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma, Eq node)
                                  => DFA node sigma n 
                                  -> Finite n 
                                  -> DFA node sigma n 
-deleteTrack t i = t { transitionFunction = transitionFunction' }
+deleteTrack transducer i = transducer { transitionFunction = transitionFunction' }
   where transitionFunction' :: (node, Vector n sigma) -> [node]
         transitionFunction' (current, input) = 
           let replacedVectors = map (\c -> update input c i) [minBound..maxBound] 
-          in nub $ concatMap (curry (transitionFunction t) current) replacedVectors 
+          in nub $ concatMap (curry (transitionFunction transducer) current) replacedVectors 
 
         -- FIXME: The bug is a problem in the accepting condition of nondeterminism. 
         -- isFinalState' = undefined 

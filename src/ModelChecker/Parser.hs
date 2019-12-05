@@ -13,7 +13,7 @@ import qualified Text.ParserCombinators.Parsec.Token as Tok
 --   a parse error or a fully parsed Statement
 parseString :: String -> Either ParseError Statement 
 parseString = parse (whitespace *> input <* eof) "" 
-  where input = Statement <$> (concat <$> many quantifier) <*> (matrix)
+  where input = Statement <$> (concat <$> many quantifier) <*> matrix
 
 -- | Parses one quantifier expression (might introduce many variables) 
 quantifier :: Parser [Quantifier]
