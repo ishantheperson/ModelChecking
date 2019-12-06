@@ -1,6 +1,6 @@
 GHC = ghc 
 BUILDDIR = build 
-GHCFLAGS = 
+GHCFLAGS = -O
 GHCBUILDFLAGS = -isrc -odir $(BUILDDIR) -hidir $(BUILDDIR)
 
 SOURCE = $(shell find src/ -name "*.hs")

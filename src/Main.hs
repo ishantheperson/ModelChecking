@@ -1,9 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 #if __GLASGOW_HASKELL__ < 800 
-#warning "GHC v8.0 is required to build most modules"
+#warning "GHC v8.0 is required to build this project"
 #endif 
 
 import ModelChecker.Parser
@@ -69,18 +70,28 @@ main = runInputT settings $ do
   outputStrLn "Please enter a sentence in FOL: "
   loop
 
-  where settings = defaultSettings { historyFile = Just ".mcheck_history" }                      
+  where settings = defaultSettings { historyFile = Just ".mcheck_history" } 
+        printHelp = do 
+          outputStrLn "Example formulas:"
+          outputStrLn "forall a b c. a -> b && a -> c => b = c"
+          outputStrLn "exists a. forall b. a + b = a"
+          outputStrLn "forall a b c. a + b = c => a != c"
+          outputStrLn "forall a b c. a + b = c => b + a = c"
+          outputStrLn ""
+          loop
+  
         loop = do 
-          msentence <- getInputLine "> " <&> fmap parseString
-
+          msentence <- getInputLine "> " -- <&> fmap parseString
           case msentence of 
             Nothing -> return () 
-            Just (Left err) -> do 
-              outputStrLn $ show err
+            Just "" -> loop 
+            Just "help" -> printHelp 
+            Just (parseString -> Left err) -> do 
+              outputStrLn $ show err 
               loop 
-            Just (Right sentence) -> do 
-              let valid = mkTransducer sentence
-              outputStrLn $ show valid -- mapM_ (putStrLn . intercalate "," . map (show . fromEnum)) valid 
-              loop   -- in putStrLn $ "Formula is " ++ show valid 
 
+            Just (parseString -> Right program) -> do 
+              let valid = mkTransducer program 
+              outputStrLn $ show valid 
+              loop 
 #endif 
