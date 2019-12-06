@@ -12,25 +12,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE EmptyCase #-}
 
-
 module Vector where 
-  
-import Debug.Trace
 
-import Control.Applicative  
 import "template-haskell" Language.Haskell.TH
 
 -- | Represents a natural number as a type
 data Nat = Zero | Succ Nat deriving (Show, Eq, Ord)
-
--- TODO: injectivity? 
-type family (n :: Nat) + (m :: Nat) = (c :: Nat) where 
-  Zero     + m = m 
-  (Succ n) + m = Succ (n + m)
-
-addSnat :: SNat n -> SNat m -> SNat (n + m)
-addSnat SZero m = m 
-addSnat (SSucc n) m = SSucc (n `addSnat` m)
 
 -- | Connects the concrete (value level) representation
 --   of a natural number with the type level representation
@@ -40,29 +27,6 @@ data SNat n where
   SSucc :: SNat n -> SNat (Succ n)  
 
 deriving instance Show (SNat a)   
-
-data LessThanEqual :: Nat -> Nat -> * where 
-  LTEZero :: LessThanEqual Zero m 
-  LTESucc :: LessThanEqual n m -> LessThanEqual (Succ n) (Succ m)
-
-deriving instance Show (LessThanEqual a b)  
-
-data Void 
-type Refuted a = (a -> Void)
-data Decision a = Proved a   
-                | Disproved (Refuted a)
-
-lessThanEqual :: SNat n -> SNat m -> Decision (LessThanEqual n m)
-lessThanEqual SZero _ = Proved LTEZero 
-lessThanEqual (SSucc n) SZero = Disproved (\case { })
-lessThanEqual (SSucc n) (SSucc m) = 
-  case lessThanEqual n m of 
-    Proved l -> Proved $ LTESucc l 
-    Disproved p -> Disproved $ \case LTESucc l -> p l 
-
-atLeast :: SNat n -> Vector m a -> Maybe (LessThanEqual n m, Vector m a)    
---atLeast :: SNat n -> Vector m a -> Maybe (LessThanEqual n m, Vector (n + k) a)
-atLeast n v = case lessThanEqual n (vlength v) of 
 
 -- | Represents a vector parameterized by its 
 --   length as well as its data type. 
@@ -125,14 +89,6 @@ withVector :: [a] -> (forall (n :: Nat). SNat n -> Vector n a -> b) -> b
 withVector []     f = f SZero VEmpty 
 withVector (x:xs) f = withVector xs $ \len vs -> f (SSucc len) (x :+ vs)  
 
-withVector2 :: [a] -> (forall (n :: Nat). SNat (Succ (Succ n)) -> Vector (Succ (Succ n)) a -> b) -> b
-withVector2 (x:y:[]) f = f (SSucc (SSucc SZero)) $ x :+ y :+ VEmpty
-withVector2 (x:y:ys) f = withVector2 (y:ys) $ \len vs -> f (SSucc len) (x :+ vs)
-
-withVector3 :: [a] -> (forall (n :: Nat). SNat (Succ (Succ (Succ n))) -> Vector (Succ (Succ (Succ n))) a -> b) -> b
-withVector3 (x:y:z:[]) f = f (SSucc $ SSucc $ SSucc SZero) $ x :+ y :+ z :+ VEmpty
-withVector3 (x:y:z:xs) f = withVector3 (y:z:xs) $ \len vs -> f (SSucc len) (x :+ vs)
-
 -- | Creates a new vector of the given size using a function 
 newWith :: SNat n -> (Finite n -> a) -> Vector n a
 newWith SZero     _ = VEmpty
@@ -143,11 +99,13 @@ vlength VEmpty = SZero
 vlength (_ :+ xs) = SSucc (vlength xs)
 
 -- | Gets the index of an element in a vector. Crashes if it does not exist 
-indexOf :: Eq a => Vector n a -> a -> (Finite n -> b) -> b 
-indexOf VEmpty    _ _ = error "Cannot find"
-indexOf (x :+ xs) a f = if a == x 
+indexOf' :: Eq a => Vector n a -> a -> (Finite n -> b) -> b 
+indexOf' VEmpty    _ _ = error "Cannot find"
+indexOf' (x :+ xs) a f = if a == x 
                           then f FZero 
-                          else indexOf xs a (f . FSucc)
+                          else indexOf' xs a (f . FSucc)
+
+indexOf v x = indexOf' v x id 
 
 withIndices :: Vector n a -> b -> (Finite n -> a -> b -> b) -> b 
 withIndices VEmpty b _ = b 
@@ -166,7 +124,7 @@ index (_ :+ xs) (FSucc i) = index xs i
 -- | Updates the given vector at a position. 
 update :: Vector n a -> a -> Finite n -> Vector n a 
 update VEmpty    _ _         = VEmpty
-update (y :+ xs) x FZero     = x :+ xs 
+update (_ :+ xs) x FZero     = x :+ xs 
 update (y :+ xs) x (FSucc i) = y :+ update xs x i 
 
 -- | Cons onto the front of a vector

@@ -9,9 +9,6 @@ module ModelChecker.Transducer where
 
 import Vector   
 import ModelChecker.DFA 
-import SampleModel 
-
-import Data.List (nub)
 
 -- | Changes the size of a DFA, given a mapping to the new tracks.
 --   e.g. changeSize (FZer0 :+ FZero :+ VEmpty) $(mkSnat 1) eqDFA

@@ -81,7 +81,7 @@ main = runInputT settings $ do
           loop
   
         loop = do 
-          msentence <- getInputLine "> " -- <&> fmap parseString
+          msentence <- getInputLine "> " 
           case msentence of 
             Nothing -> return () 
             Just "" -> loop 

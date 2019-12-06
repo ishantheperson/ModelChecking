@@ -15,8 +15,6 @@ import ModelChecker.Transducer
 import SampleModel 
 import Vector 
 
-import Debug.Trace 
-
 getVar :: Quantifier -> String 
 getVar = \case 
   Forall s -> s 
@@ -40,11 +38,11 @@ processMatrix :: forall n b. Matrix
 processMatrix m n names f = 
   case m of 
     TernaryOp a b c -> 
-      f $ changeSize (indexOf names a id :+ indexOf names b id :+ indexOf names c id :+ VEmpty) n addDFA
-    RelatedTo (Variable a) (Variable b) -> 
-      f $ changeSize (indexOf names a id :+ indexOf names b id :+ VEmpty) n succDFA
-    Equals (Variable a) (Variable b) -> 
-      f $ changeSize (indexOf names a id :+ indexOf names b id :+ VEmpty) n eqDFA
+      f $ changeSize (indexOf names a :+ indexOf names b :+ indexOf names c :+ VEmpty) n addDFA
+    RelatedTo a b -> 
+      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n succDFA
+    Equals a b -> 
+      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n eqDFA
     Negation a -> 
       processMatrix a n names (f . negateMachine)
     And a b -> 

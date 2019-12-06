@@ -16,9 +16,8 @@ module ModelChecker.DFA (
 import Vector 
 
 import Data.List (nub)
-import Data.Set (Set, (\\))
+import Data.Set (Set)
 import qualified Data.Set as Set 
-import Data.Foldable (find)
 
 import Control.Monad.State 
 

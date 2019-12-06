@@ -9,8 +9,6 @@ import ModelChecker.DFA
 
 import qualified Data.Set as Set 
 
-import Debug.Trace 
-
 data BinaryAlphabet = BZero | BOne deriving (Show, Eq, Ord, Bounded, Enum)
 instance Num BinaryAlphabet where 
   fromInteger 0 = BZero

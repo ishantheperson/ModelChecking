@@ -26,35 +26,44 @@ quantifier = quant "forall" Forall <|> quant "exists" Exists <?> "quantifiers"
 
 matrix, term :: Parser Matrix 
 -- | Parses the non-quantifier portion of the formula 
-matrix = buildExpressionParser operators term <?> "expression"
+matrix = buildExpressionParser operators term 
 term =  parens matrix 
     <|> ternary 
-    <?> "expression"
+    <|> binary 
 
 ternary = do 
-  a <- identifier 
-  sawPlus <- optionMaybe $ reservedOp "+"
-  case sawPlus of 
-    Nothing -> return $ Variable a 
-    Just _ -> do 
-      b <- identifier
-      (reservedOp "=" <|> reservedOp "==") <?> "equals"
-      c <- identifier
-      return $ TernaryOp a b c 
+  a <- try $ do identifier <* reservedOp "+"
 
+  b <- identifier
+  op <- (TernaryOp <$ (reservedOp "=" <|> reservedOp "=="))
+        <|> ((\x y z -> Negation (TernaryOp x y z)) <$ reservedOp "!=")
+  c <- identifier
+  return $ op a b c 
+
+binary = do 
+  (a, op) <- try $ do a <- identifier 
+                      op <- choice binOps 
+                      return (a, op)
+  b <- identifier
+
+  return $ op a b 
+
+  where binOps = [mkOp "="  Equals,
+                  mkOp "==" Equals,
+                  mkOp "->" RelatedTo,
+                  mkOp "!=" convertNotEqual]    
+        mkOp s f = f <$ reservedOp s 
 
 operators = [[Prefix (Negation <$ choice [reservedOp "~", reservedOp "!"])],
-             [mkOp "="  Equals,
-              mkOp "==" Equals,
-              mkOp "->" RelatedTo,
-              mkOp "!=" convertNotEqual],
              [mkOp "&&" And,
-              mkOp "||" convertOr],
+              mkOp "and" And,
+              mkOp "||" convertOr,
+              mkOp "or" convertOr],
              [mkOp "=>" convertImplies]]
   where mkOp s f = Infix (f <$ reservedOp s) AssocLeft
 
 lexer = Tok.makeTokenParser (emptyDef {
-  Tok.reservedNames = ["forall", "exists"],
+  Tok.reservedNames = ["forall", "exists", "and", "or"],
   Tok.identStart = letter,
   Tok.identLetter = alphaNum <|> char '\'' <?> "identifier",
   Tok.commentLine = "#"
