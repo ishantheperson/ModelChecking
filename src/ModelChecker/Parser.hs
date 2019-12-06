@@ -45,7 +45,6 @@ binary = do
                       op <- choice binOps 
                       return (a, op)
   b <- identifier
-
   return $ op a b 
 
   where binOps = [mkOp "="  Equals,

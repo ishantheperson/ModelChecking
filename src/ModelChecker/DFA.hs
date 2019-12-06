@@ -38,7 +38,7 @@ data DFA (node :: *) (sigma :: *) (arity :: Nat) = DFA {
 -- | Gets a version of the DFAs transition function which takes into account
 --   deleted tracks. If all tracks are deleted, then every transition is an 
 --   epsilon transition 
-mkTransition :: forall node sigma arity. (Bounded sigma, Enum sigma, Eq node, Show sigma) 
+mkTransition :: forall node sigma arity. (Bounded sigma, Enum sigma, Eq node) 
                                       => DFA node sigma arity 
                                       -> (node, Vector arity sigma) 
                                       -> [node]
@@ -74,8 +74,8 @@ getInitialState t =
     other -> other 
 
 -- | Gets the set of all states reachable from this one 
-getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma, Show node, Show sigma) => 
-                      DFA node sigma arity -> node -> Set node 
+getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma) 
+                => DFA node sigma arity -> node -> Set node 
 getDestinations t n = 
   Set.fromList $ concatMap (curry (mkTransition t) n) (getAlphabet (arity t))
 
@@ -89,8 +89,9 @@ getDestinations t n =
 
 -- | Tests whether the language of the DFA is empty
 --   by performing DFS           
-empty, nonempty :: forall node sigma arity. (Ord node, Ord sigma, Bounded sigma, Enum sigma, Show node, Show sigma) => 
-              DFA node sigma arity -> Bool
+empty, nonempty :: forall node sigma arity. 
+                   (Ord node, Ord sigma, Bounded sigma, Enum sigma) 
+                => DFA node sigma arity -> Bool
 empty t = Set.null $ Set.filter (isFinalState t) reachable
   where dfs :: MonadState (Set node) m => node -> m () 
         dfs currentNode = do 
@@ -105,11 +106,8 @@ empty t = Set.null $ Set.filter (isFinalState t) reachable
 
         reachable :: Set node
         reachable = 
-          let initial = head $ getInitialState t 
-          in execState (dfs initial) (Set.singleton initial)
-        -- reachable = 
-        --   let initials = getInitialState t 
-        --   in foldl Set.union Set.empty (map (\starter -> execState (dfs starter Set.empty) Set.empty) initials)
+          let initial = getInitialState t 
+          in execState (traverse dfs initial) Set.empty
 
 nonempty = not . empty 
 
@@ -128,7 +126,7 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
         transitionFunction' ((n1, n2), e) = nub [(a, b) | a <- transitionFunction t1 (n1, e),
                                                           b <- transitionFunction t2 (n2, e) ]
 
-nfaeClosure :: (Ord a, Ord b, Bounded b, Enum b, Show a, Show b) => DFA a b c -> DFA a b c 
+nfaeClosure :: (Ord a, Ord b, Bounded b, Enum b) => DFA a b c -> DFA a b c 
 nfaeClosure t =
   if or $ activeTracks t
     then t 

@@ -1,4 +1,4 @@
-ifeq (andrew.cmu.edu,$(find_string andrew.cmu.edu,$(shell hostname)))
+ifeq (andrew.cmu.edu,$(findstring andrew.cmu.edu,$(shell hostname)))
 GHC = /afs/andrew.cmu.edu/course/15/354/handin/ibhargav/.ghcup/bin/ghc
 else 
 GHC = ghc
