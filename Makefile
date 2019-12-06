@@ -1,4 +1,8 @@
+ifeq (andrew.cmu.edu,$(find_string andrew.cmu.edu,$(shell hostname)))
+GHC = /afs/andrew.cmu.edu/course/15/354/handin/ibhargav/.ghcup/bin/ghc
+else 
 GHC = ghc 
+endif 
 BUILDDIR = build 
 GHCFLAGS = -O
 GHCBUILDFLAGS = -isrc -odir $(BUILDDIR) -hidir $(BUILDDIR)
@@ -7,7 +11,9 @@ SOURCE = $(shell find src/ -name "*.hs")
 
 EXECUTABLE = mcheck
 
-all: $(EXECUTABLE) 
+all: $(EXECUTABLE)
+	mkdir -p bin 
+	cp mcheck bin
 
 $(EXECUTABLE): $(SOURCE)
 	$(GHC) $(GHCFLAGS) $(GHCBUILDFLAGS) src/Main.hs -o $(EXECUTABLE)
