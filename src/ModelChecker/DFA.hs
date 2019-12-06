@@ -22,8 +22,6 @@ import Data.Foldable (find)
 
 import Control.Monad.State 
 
-import Debug.Trace 
-
 -- | Represents a nondeterministic automata
 -- 
 -- @node@: Type of nodes
@@ -46,7 +44,7 @@ mkTransition :: forall node sigma arity. (Bounded sigma, Enum sigma, Eq node, Sh
                                       -> (node, Vector arity sigma) 
                                       -> [node]
 mkTransition t (node, letter) = 
-      let vectors = traceShowId $ mkVectors (activeTracks t) letter 
+      let vectors = mkVectors (activeTracks t) letter 
       in nub $ concatMap (\v -> delta (node, v)) vectors     
   where delta = transitionFunction t 
 
@@ -79,7 +77,7 @@ getInitialState t =
 -- | Gets the set of all states reachable from this one 
 getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma, Show node, Show sigma) => 
                       DFA node sigma arity -> node -> Set node 
-getDestinations t n = traceShowId $ 
+getDestinations t n = 
   Set.fromList $ concatMap (curry (mkTransition t) n) (getAlphabet (arity t))
 
 -- | Tests whether the DFA accepts a given string   
@@ -109,7 +107,7 @@ empty t = Set.null $ Set.filter (isFinalState t) reachable
         reachable :: Set node
         reachable = 
           let initial = head $ getInitialState t 
-          in traceShowId $ execState (dfs initial) (Set.singleton initial)
+          in execState (dfs initial) (Set.singleton initial)
         -- reachable = 
         --   let initials = getInitialState t 
         --   in foldl Set.union Set.empty (map (\starter -> execState (dfs starter Set.empty) Set.empty) initials)
@@ -133,9 +131,9 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
 
 nfaeClosure :: (Ord a, Ord b, Bounded b, Enum b, Show a, Show b) => DFA a b c -> DFA a b c 
 nfaeClosure t =
-  if or (activeTracks t)
+  if or $ activeTracks t
     then t 
-    else trace ("got here " ++ show emptiness ++ " -- " ++ show (activeTracks t))  $ 
+    else
       DFA (states t) (arity t) (const emptiness) (const True) (transitionFunction t) (activeTracks t)
 
   where emptiness = nonempty t  

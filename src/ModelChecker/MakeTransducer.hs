@@ -23,12 +23,12 @@ getVar = \case
   Exists s -> s 
 
 mkTransducer :: Statement -> Bool 
-mkTransducer (Statement qs m) = withVector (qs) $ \len vars -> -- NOTE: qs is already reversed...or withIndices does it in reverse
+mkTransducer (Statement qs m) = withVector qs $ \len vars -> -- NOTE: qs is already reversed...or withIndices does it in reverse
   processMatrix m len (getVar <$> vars) $ \transducer -> 
     let withoutTracks = withIndices vars transducer $ 
           \index quant lastTransducer -> -- traceShow (activeTracks lastTransducer) $
-            case quant of Exists _ -> trace "exists" $ deleteTrack lastTransducer index
-                          Forall _ -> trace "forall" $ negateMachine $ deleteTrack (negateMachine lastTransducer) index
+            case quant of Exists _ -> deleteTrack lastTransducer index
+                          Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index
     in nonempty withoutTracks 
 
 -- This works but we need a full continuation  

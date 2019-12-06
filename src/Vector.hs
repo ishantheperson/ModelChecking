@@ -220,12 +220,3 @@ mkFinite :: Int -> Q Exp
 mkFinite 0         = [| FZero |]
 mkFinite i | i > 0 = [| FSucc $(mkFinite $ pred i) |]
 mkFinite other     = error $ "mkFinite " ++ show other ++ ": must be nonnegative"
-
--- mkVector :: [a] -> Q Exp 
--- mkVector []     = [| VEmpty |]
--- mkVector (x:xs) = [| x :+ $(mkVector xs) |]
-
-mkVectors :: forall n sigma. (Bounded sigma, Enum sigma) => Vector n Bool -> Vector n sigma -> [Vector n sigma]
-mkVectors VEmpty         VEmpty    = []
-mkVectors (True  :+ bs)  (x :+ xs) = (:+) <$> [x] <*> mkVectors bs xs
-mkVectors (False :+ bs)  (_ :+ xs) = (:+) <$> ([minBound..maxBound] :: [sigma]) <*> mkVectors bs xs
