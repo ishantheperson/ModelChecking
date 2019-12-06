@@ -12,8 +12,11 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE EmptyCase #-}
 
+
 module Vector where 
   
+import Debug.Trace
+
 import Control.Applicative  
 import "template-haskell" Language.Haskell.TH
 
@@ -221,3 +224,8 @@ mkFinite other     = error $ "mkFinite " ++ show other ++ ": must be nonnegative
 -- mkVector :: [a] -> Q Exp 
 -- mkVector []     = [| VEmpty |]
 -- mkVector (x:xs) = [| x :+ $(mkVector xs) |]
+
+mkVectors :: forall n sigma. (Bounded sigma, Enum sigma) => Vector n Bool -> Vector n sigma -> [Vector n sigma]
+mkVectors VEmpty         VEmpty    = []
+mkVectors (True  :+ bs)  (x :+ xs) = (:+) <$> [x] <*> mkVectors bs xs
+mkVectors (False :+ bs)  (_ :+ xs) = (:+) <$> ([minBound..maxBound] :: [sigma]) <*> mkVectors bs xs

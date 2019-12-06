@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-missing-methods -Wincomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-missing-methods -Wno-incomplete-patterns #-}
 module SampleModel where 
 
 import Vector 
@@ -39,10 +39,10 @@ addTransition (state, v) = pure $ case (state, fromVec3 v) of
 -- True
 -- addDFA = DFA addStates (SSucc (SSucc (SSucc SZero))) addIsFinal addIsInitial addTransition
 addDFA :: DFA AddState BinaryAlphabet (Succ (Succ (Succ Zero)))
-addDFA = DFA addStates $(mkSnat 3) addIsFinal addIsInitial addTransition
+addDFA = DFA addStates $(mkSnat 3) addIsFinal addIsInitial addTransition (new $(mkSnat 3) True)
 
 succDFA :: DFA AddState BinaryAlphabet (Succ (Succ Zero))
-succDFA = DFA addStates $(mkSnat 2) (== NoCarry) (== Carry) succTransition 
+succDFA = DFA addStates $(mkSnat 2) (== NoCarry) (== Carry) succTransition (new $(mkSnat 2) True)
   where succTransition (state, v) = pure $ case (state, fromVec2 v) of 
           (Sink, _) -> Sink 
           (Carry, (0, 1)) -> NoCarry
@@ -60,7 +60,7 @@ data EqualStates = Equal | ESink deriving (Show, Eq, Ord)
 -- >>> accepts eqDFA (map toVec2 [(0, 0), (1, 1), (0, 1)])
 -- False
 eqDFA :: DFA EqualStates BinaryAlphabet (Succ (Succ Zero))
-eqDFA = DFA eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition
+eqDFA = DFA eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition (new $(mkSnat 2) True)
   where eqStates = Set.fromList [Equal, ESink]
         eqIsFinal = (==) Equal 
         eqIsInitial = (==) Equal 
@@ -71,7 +71,7 @@ eqDFA = DFA eqStates $(mkSnat 2) eqIsFinal eqIsInitial eqTransition
           (ESink, _) -> ESink
         
 moreThanThreeDFA :: DFA Int BinaryAlphabet (Succ Zero)          
-moreThanThreeDFA = DFA states $(mkSnat 1) (==3) (==1) delta 
+moreThanThreeDFA = DFA states $(mkSnat 1) (==3) (==1) delta (new $(mkSnat 1) True)
   where states = Set.fromList [1..3]
         delta (state, _) = (:[]) $ case state of 
           1 -> 2
@@ -80,7 +80,7 @@ moreThanThreeDFA = DFA states $(mkSnat 1) (==3) (==1) delta
 
 data EqualParityStates = EvenEven | OddOdd | EvenOdd | OddEven deriving (Show, Eq, Bounded, Ord, Enum)          
 equalParityDFA :: DFA EqualParityStates BinaryAlphabet (Succ (Succ Zero))
-equalParityDFA = DFA states $(mkSnat 2) isInitial isFinal delta 
+equalParityDFA = DFA states $(mkSnat 2) isInitial isFinal delta (new $(mkSnat 2) True)
   where states = Set.fromList [minBound..maxBound]
         isInitial = (==) EvenEven 
         isFinal s = s == EvenEven || s == OddOdd 
