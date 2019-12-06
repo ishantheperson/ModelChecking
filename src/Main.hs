@@ -67,7 +67,7 @@ main = do
 
 #elif CURRENT_TEST == TEST_TRANSDUCER 
 main = runInputT settings $ do 
-  outputStrLn "Please enter a sentence in FOL: "
+  outputStrLn "Please enter a sentence in FOL, or type \"help\" for help: "
   loop
 
   where settings = defaultSettings { historyFile = Just ".mcheck_history" } 
