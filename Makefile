@@ -1,8 +1,12 @@
 ifeq (andrew.cmu.edu,$(findstring andrew.cmu.edu,$(shell hostname)))
-GHC = /afs/andrew.cmu.edu/course/15/354/handin/ibhargav/.ghcup/bin/ghc
+GHCROOT = /afs/andrew.cmu.edu/course/15/354/handin/ibhargav/.ghcup/bin/
 else 
-GHC = ghc
+GHCROOT = 
 endif 
+
+GHC = $(GHCROOT)ghc 
+HADDOCK = $(GHCROOT)haddock
+
 BUILDDIR = build 
 GHCFLAGS = -O -W
 GHCBUILDFLAGS = -isrc -odir	$(BUILDDIR) -hidir $(BUILDDIR)
@@ -19,7 +23,7 @@ $(EXECUTABLE): $(SOURCE)
 	$(GHC) $(GHCFLAGS) $(GHCBUILDFLAGS) src/Main.hs -o $(EXECUTABLE)
 
 doc: $(SOURCE)
-	haddock --html -o doc $(SOURCE)
+	$(HADDOCK) --html -o doc $(SOURCE)
 
 clean: 
 	rm -rf build/* $(EXECUTABLE) doc
