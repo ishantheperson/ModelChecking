@@ -11,6 +11,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Vector where 
 
@@ -113,13 +114,11 @@ withIndices (x :+ VEmpty) b f = f FZero x b
 withIndices (x :+ xs) b f = withIndices xs (f FZero x b) $ 
   \i e accum -> f (FSucc i) e accum 
                           
--- | Indexing into a vector (poor performance)
---   but is safe. If we cared about performance
---   we wouldn't have written the project in a functional
---   programming language lmao. 
+-- | O(n) safe indexing into a vector (given valuable arguments)
 index :: Vector n a -> Finite n -> a
-index (x :+ _)  FZero     = x
-index (_ :+ xs) (FSucc i) = index xs i
+index VEmpty    !(_)       = undefined -- Only reachable by passing ⊥ as index
+index (x :+ _)  !(FZero)   = x
+index (_ :+ xs) !(FSucc i) = index xs i
 
 -- | Updates the given vector at a position. 
 update :: Vector n a -> a -> Finite n -> Vector n a 

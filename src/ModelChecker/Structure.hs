@@ -25,10 +25,11 @@ data Structure a b c sigma = Structure {
 
 type Context m = (MonadState (Set String) m, MonadWriter [String] m)
 
+-- | Takes a structure and a statement, and returns a list of errors encountered
 checkStatement structure (Statement qs m) = 
-  execWriter $ execStateT (traverse checkQuants qs >> checkAST m) Set.empty 
-  where checkQuants :: Context m => Quantifier -> m () 
-        checkQuants s = do 
+  execWriter $ execStateT (forM_ qs checkQuant >> checkAST m) Set.empty 
+  where checkQuant :: Context m => Quantifier -> m () 
+        checkQuant s = do 
           let name = case s of { Forall s -> s; Exists s -> s }
 
           seen <- gets $ Set.member name 
@@ -38,7 +39,7 @@ checkStatement structure (Statement qs m) =
         checkVar :: Context m => String -> m () 
         checkVar s = do 
           exists <- gets $ Set.member s 
-          unless exists $ tell ["unknown variable '" ++ s ++ "'"]
+          unless exists $ tell ["unquantified variable '" ++ s ++ "'"]
 
         checkAST :: Context m => Matrix -> m () 
         checkAST = \case 
