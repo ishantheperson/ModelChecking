@@ -69,9 +69,10 @@ mkTransition t (node, letter) =
 --   Precondition: @isInitialState$ must return @True@ for at least one state in
 --   @states@
 getInitialState t = 
-  case Set.toList $ Set.filter (isInitialState t) (states t) of 
-    [] -> error "No initial state found in given automata!"
-    other -> other 
+  let candidates = Set.filter (isInitialState t) (states t)
+  in if null candidates 
+       then error "No initial state found in given automata!"
+       else candidates  
 
 -- | Gets the set of all states reachable from this one 
 getDestinations :: (Ord node, Ord sigma, Bounded sigma, Enum sigma) 
@@ -106,8 +107,8 @@ empty t = Set.null $ Set.filter (isFinalState t) reachable
 
         reachable :: Set node
         reachable = 
-          let initial = getInitialState t 
-          in execState (traverse dfs initial) Set.empty
+          let initials = getInitialState t 
+          in execState (forM_ initials dfs) Set.empty
 
 nonempty = not . empty 
 

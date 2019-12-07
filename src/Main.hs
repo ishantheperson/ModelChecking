@@ -11,6 +11,7 @@ import ModelChecker.Parser
 import ModelChecker.DFA 
 import ModelChecker.AST
 import ModelChecker.MakeTransducer
+import ModelChecker.Structure 
 
 import SampleModel 
 import Vector
@@ -20,6 +21,8 @@ import Data.Functor
 import Control.Monad 
 import Control.Monad.IO.Class
 import Control.Arrow ((>>>))
+
+import Text.Printf 
 
 import System.IO
 import System.Console.Haskeline
@@ -88,10 +91,19 @@ main = runInputT settings $ do
             Just "help" -> printHelp 
             Just (parseString -> Left err) -> do 
               outputStrLn $ show err 
+              outputStrLn "" 
               loop 
 
             Just (parseString -> Right program) -> do 
+              case checkStatement presburger program of 
+                [] -> return () 
+                errors -> do 
+                  mapM_ outputStrLn errors 
+                  outputStrLn ""
+                  loop 
+
               let valid = mkTransducer program 
               outputStrLn $ show valid 
+              outputStrLn ""
               loop 
 #endif 
