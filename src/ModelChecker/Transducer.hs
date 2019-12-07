@@ -27,7 +27,7 @@ changeSize mapping m t = t { arity = m,
           in delta (current, index input <$> mapping)
 
 -- Quantify "exists" on transducer @t@ on track @i@           
-deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma, Eq node, Ord node, Ord sigma, Show node, Show sigma) 
+deleteTrack :: forall node sigma n. (Bounded sigma, Enum sigma, Eq node, Ord node, Ord sigma) 
                                  => DFA node sigma n 
                                  -> Finite n 
                                  -> DFA node sigma n 

@@ -34,19 +34,3 @@ convertNotEqual :: String -> String -> Matrix
 convertImplies a b = Negation a `convertOr` b 
 convertOr a b = Negation (Negation a `And` Negation b)
 convertNotEqual a b = Negation (a `Equals` b)
-
--- printStatement (Right (Statement qs m)) = concatMap printQuantifier qs ++ printMatrix m
--- printStatement (Left e) = show e  
-
--- printQuantifier = \case 
---   Forall s -> "forall " ++ s ++ ". "
---   Exists s -> "exists " ++ s ++ ". "
-
--- printMatrix = \case 
---   Negation (Variable s) -> "~" ++ s 
---   Negation m -> "~(" ++ printMatrix m ++ ")"
---   And a b -> "(" ++ printMatrix a ++ ") && (" ++ printMatrix b ++ ")"
---   RelatedTo a b -> "(" ++ printMatrix a ++ ") -> (" ++ printMatrix b ++ ")"
---   Equals a b ->  "(" ++ printMatrix a ++ ") == (" ++ printMatrix b ++ ")"
---   Variable s -> s 
---   TernaryOp a b c -> a ++ " + " ++ b ++ " = " ++ c 

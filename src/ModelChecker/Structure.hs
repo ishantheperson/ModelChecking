@@ -8,7 +8,7 @@ module ModelChecker.Structure where
 import ModelChecker.DFA   
 import ModelChecker.AST 
 
-import SampleModel 
+import SampleStructure 
 import Vector 
 
 import Data.Set (Set)

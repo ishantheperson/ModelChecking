@@ -12,42 +12,48 @@ import ModelChecker.AST
 import ModelChecker.DFA 
 import ModelChecker.Transducer 
 
-import SampleModel 
+import ModelChecker.Structure 
+
+import SampleStructure 
 import Vector 
+
+import Data.Maybe (fromJust)
 
 getVar :: Quantifier -> String 
 getVar = \case 
   Forall s -> s 
   Exists s -> s 
 
-mkTransducer :: Statement -> Bool 
-mkTransducer (Statement qs m) = withVector qs $ \len vars -> -- NOTE: qs is already reversed...or withIndices does it in reverse
-  processMatrix m len (getVar <$> vars) $ \transducer -> 
+valid :: (Ord t1, Ord t2, Ord t3) => Structure t1 t2 t3 BinaryAlphabet -> Statement -> Bool 
+valid structure (Statement qs m) = withVector qs $ \len vars -> -- NOTE: qs is already reversed...or withIndices does it in reverse
+  processMatrix structure m len (getVar <$> vars) $ \transducer -> 
     let withoutTracks = withIndices vars transducer $ 
-          \index quant lastTransducer -> -- traceShow (activeTracks lastTransducer) $
+          \index quant lastTransducer -> 
             case quant of Exists _ -> deleteTrack lastTransducer index
                           Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index
     in nonempty withoutTracks 
 
 -- This works but we need a full continuation  
-processMatrix :: forall n b. Matrix 
-                          -> SNat n 
-                          -> Vector n String 
-                          -> (forall ps. (Show ps, Ord ps) => DFA ps BinaryAlphabet n -> b)
-                          -> b 
-processMatrix m n names f = 
+processMatrix :: forall n b t1 t2 t3. (Ord t1, Ord t2, Ord t3) =>
+                 Structure t1 t2 t3 BinaryAlphabet
+              -> Matrix 
+              -> SNat n 
+              -> Vector n String 
+              -> (forall ps. Ord ps => DFA ps BinaryAlphabet n -> b)
+              -> b 
+processMatrix structure m n names f = 
   case m of 
     TernaryOp a b c -> 
-      f $ changeSize (indexOf names a :+ indexOf names b :+ indexOf names c :+ VEmpty) n addDFA
+      f $ changeSize (indexOf names a :+ indexOf names b :+ indexOf names c :+ VEmpty) n (fromJust $ ternaryOp structure)
     RelatedTo a b -> 
-      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n succDFA
+      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n (fromJust $ binOp structure)
     Equals a b -> 
-      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n eqDFA
+      f $ changeSize (indexOf names a :+ indexOf names b :+ VEmpty) n (equalOp structure)
     Negation a -> 
-      processMatrix a n names (f . negateMachine)
+      processMatrix structure a n names (f . negateMachine)
     And a b -> 
-      processMatrix a n names $ \leftMachine -> 
-        processMatrix b n names $ \rightMachine -> 
+      processMatrix structure a n names $ \leftMachine -> 
+        processMatrix structure b n names $ \rightMachine -> 
           f $ leftMachine `productMachine` rightMachine
 
 -- Example:

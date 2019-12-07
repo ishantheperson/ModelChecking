@@ -10,6 +10,8 @@ import ModelChecker.Parser
 import ModelChecker.MakeTransducer
 import ModelChecker.Structure 
 
+import SampleStructure 
+
 import System.Console.Haskeline
 
 main :: IO () 
@@ -46,7 +48,7 @@ main = runInputT settings $ do
                   outputStrLn ""
                   loop 
 
-              let valid = mkTransducer program 
-              outputStrLn $ show valid 
+              let result = valid presburger program 
+              outputStrLn $ show result 
               outputStrLn ""
               loop 

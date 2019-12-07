@@ -2,7 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-missing-methods -Wno-incomplete-patterns #-}
-module SampleModel where 
+module SampleStructure where 
 
 import Vector 
 import ModelChecker.DFA
