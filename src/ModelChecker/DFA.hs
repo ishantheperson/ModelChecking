@@ -7,7 +7,7 @@
 
 module ModelChecker.DFA (
   DFA(..), 
-  -- toAdjacencyMatrix,
+  toAdjacencyMatrix,
   empty, nonempty,
   getInitialState,
   nfaeClosure,
@@ -57,13 +57,13 @@ mkTransition t (node, letter) =
 --   TODO: Look into networkx (python package) and use that to render a cool
 --         graph 
 --      @ mapM_ (putStrLn . intercalate ", ") $ map (map (show . fromEnum)) $ toAdjacencyMatrix moreThanThreeDFA
--- toAdjacencyMatrix :: (Eq node, Ord node, Ord sigma, Bounded sigma, Enum sigma, Show node) => 
---                       DFA node sigma arity -> [[Bool]]
--- toAdjacencyMatrix t = map processState nodeList
---   where nodeList = Set.toList $ states t
---         processState s = 
---           let reachable = getDestinations t s 
---           in map (`Set.member` reachable) nodeList 
+toAdjacencyMatrix :: (Eq node, Ord node, Ord sigma, Bounded sigma, Enum sigma) => 
+                      DFA node sigma arity -> [[Bool]]
+toAdjacencyMatrix t = map processState nodeList
+  where nodeList = Set.toList $ states t
+        processState s = 
+          let reachable = getDestinations t s 
+          in map (`Set.member` reachable) nodeList 
 
 -- | Gets the initial state of the DFA by using its @isInitialState@ function.
 --   Precondition: @isInitialState$ must return @True@ for at least one state in
@@ -131,8 +131,7 @@ nfaeClosure :: (Ord a, Ord b, Bounded b, Enum b) => DFA a b c -> DFA a b c
 nfaeClosure t =
   if or $ activeTracks t
     then t 
-    else
-      DFA (states t) (arity t) (const emptiness) (const True) (transitionFunction t) (activeTracks t)
+    else t { isFinalState = const emptiness, isInitialState = const True }
 
   where emptiness = nonempty t  
 

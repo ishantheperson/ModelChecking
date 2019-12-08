@@ -15,6 +15,7 @@
 
 module Vector where 
 
+import Data.Foldable (toList)
 import "template-haskell" Language.Haskell.TH
 
 -- | Represents a natural number as a type
@@ -34,8 +35,6 @@ deriving instance Show (SNat a)
 data Vector n a where 
   VEmpty :: Vector Zero a
   (:+)   :: a -> Vector n a -> Vector (Succ n) a 
-  
-deriving instance Show a => Show (Vector n a)
 
 instance Functor (Vector n) where 
   fmap _ VEmpty    = VEmpty
@@ -46,6 +45,14 @@ instance Foldable (Vector n) where
   foldMap f (x :+ xs) = f x <> foldMap f xs 
 
 infixr 5 :+
+
+instance Traversable (Vector n) where 
+  traverse _ VEmpty = pure VEmpty
+  traverse f (x :+ xs) = (:+) <$> f x <*> traverse f xs 
+
+instance Show a => Show (Vector n a) where 
+  show v = "[" ++ (show $ toList v) ++ "]"
+
 
 -- These mean we can only compare
 -- vectors of the same length :O 

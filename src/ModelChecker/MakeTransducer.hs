@@ -17,6 +17,7 @@ import ModelChecker.Structure
 import SampleStructure 
 import Vector 
 
+import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
 getVar :: Quantifier -> String 
@@ -24,9 +25,12 @@ getVar = \case
   Forall s -> s 
   Exists s -> s 
 
+toAdjacencyMatrix' t = let bools = toAdjacencyMatrix t 
+  in "{" ++ intercalate "," (map (\line -> "{" ++ (intercalate ", " . map (show . fromEnum)) line ++ "}") bools) ++ "}"
+
 valid :: (Ord t1, Ord t2, Ord t3) => Structure t1 t2 t3 BinaryAlphabet -> Statement -> Bool 
 valid structure (Statement qs m) = withVector qs $ \len vars -> -- NOTE: qs is already reversed...or withIndices does it in reverse
-  processMatrix structure m len (getVar <$> vars) $ \transducer -> 
+  processMatrix structure m len (getVar <$> vars) $ \transducer ->
     let withoutTracks = withIndices vars transducer $ 
           \index quant lastTransducer -> 
             case quant of Exists _ -> deleteTrack lastTransducer index

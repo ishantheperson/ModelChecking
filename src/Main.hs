@@ -14,6 +14,9 @@ import SampleStructure
 
 import System.Console.Haskeline
 
+
+-- funky test case: exists a b c d. !(!(a + b = c && c + b = a) || (b + d = d))
+-- aka: forall a b c d. a + b = c && b + c = a ==> b + d = d 
 main :: IO () 
 main = runInputT settings $ do 
   outputStrLn "Please enter a sentence in FOL, or type \"help\" for help: "

@@ -32,7 +32,7 @@ term =  parens matrix
     <|> binary 
 
 ternary = do 
-  a <- try $ do identifier <* reservedOp "+"
+  a <- try $ identifier <* reservedOp "+"
 
   b <- identifier
   op <- (TernaryOp <$ (reservedOp "=" <|> reservedOp "=="))
