@@ -17,8 +17,6 @@ import qualified Data.Set as Set
 import Control.Monad.State 
 import Control.Monad.Writer 
 
-import Debug.Trace 
-
 data Structure a b c sigma = Structure {
   binOp :: Maybe (DFA a sigma (Succ (Succ Zero))),
   ternaryOp :: Maybe (DFA b sigma (Succ (Succ (Succ Zero)))),
@@ -35,9 +33,8 @@ checkStatement structure (Statement qs m) =
           let name = case s of { Forall s -> s; Exists s -> s }
 
           seen <- gets $ Set.member name 
-          when seen $ do 
-            tell ["variable defined multiple times: '" ++ name ++ "'"]
-            modify $ Set.insert name 
+          when seen $ tell ["variable defined multiple times: '" ++ name ++ "'"]
+          modify $ Set.insert name 
 
         checkVar :: Context m => String -> m () 
         checkVar s = do 

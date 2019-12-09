@@ -45,13 +45,11 @@ main = runInputT settings $ do
 
             Just (parseString -> Right program) -> do 
               case checkStatement presburger program of 
-                [] -> return () 
-                errors -> do 
-                  mapM_ outputStrLn errors 
-                  outputStrLn ""
-                  loop 
+                [] -> do            
+                  let result = valid presburger program 
+                  outputStrLn $ show result 
 
-              let result = valid presburger program 
-              outputStrLn $ show result 
+                errors -> mapM_ outputStrLn errors 
+
               outputStrLn ""
               loop 
