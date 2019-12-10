@@ -7,7 +7,7 @@ endif
 GHC = $(GHCROOT)ghc 
 HADDOCK = $(GHCROOT)haddock
 
-BUILDDIR = build 
+BUILDDIR = bin 
 GHCFLAGS = -O -W
 GHCBUILDFLAGS = -isrc -odir	$(BUILDDIR) -hidir $(BUILDDIR)
 
