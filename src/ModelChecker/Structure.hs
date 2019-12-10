@@ -8,7 +8,6 @@ module ModelChecker.Structure where
 import ModelChecker.DFA   
 import ModelChecker.AST 
 
-import SampleStructure 
 import Vector 
 
 import Data.Set (Set)
@@ -55,8 +54,3 @@ checkStatement structure (Statement qs m) =
             Just _  -> forM_ [a, b, c] checkVar
 
           Equals a b -> forM_ [a, b] checkVar 
-
--- | Theory of Presburger arithmetic, or just arithmetic with only addition. 
--- 
--- \( a \to b \implies a + 1 = b \)
-presburger = Structure { binOp = Just succDFA, ternaryOp = Just addDFA, equalOp = eqDFA }

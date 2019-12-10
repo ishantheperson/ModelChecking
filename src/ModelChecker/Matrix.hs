@@ -41,8 +41,8 @@ testMatrix structure matrix =
     Right vars -> withVector vars $ \n v ->
       processMatrix structure matrix n v $ \transducer -> Right $ 
         case findAccepted transducer of 
-          Nothing -> "<language is empty>"
-          Just [] -> "<empty string>"
+          Nothing -> "<accepts no strings>"
+          Just [] -> "<accepts empty string>"
           Just s -> 
             withIndices v "" $ \i name accum -> accum ++ (if null accum then "" else "\n") ++ 
               name ++ " = " ++ unwords (map (show . flip index i) s)

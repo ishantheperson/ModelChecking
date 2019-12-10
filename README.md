@@ -13,8 +13,8 @@ Otherwise should be none.
 
 The structure included is presburger arithmetic. To add more you would need to 
 create some new DFAs (as seen in `src/SampleStructure.hs`) and then package it up
-into a structure (as seen at the end of `src/ModelChecker/Structure.hs`) and then 
-switch `defaultStructure` in `src/Main.hs` to the new one. 
+into a structure (defined in `src/ModelChecker/Structure.hs`, example in `SampleStructure`
+and then switch `defaultStructure` in `src/Main.hs` to the new one. 
 
 ```
 % make 
@@ -28,7 +28,7 @@ forall a b c. a + b = c
 or just the matrix portion to see if the DFA corresponding to that
 accepts anything or not
 ```
-a + b != c
+a -> b && b -> c && c -> d && d -> e 
 ```
 
 You can run `help` in the interactive prompt for some more examples

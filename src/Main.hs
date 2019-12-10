@@ -8,8 +8,8 @@
 
 import ModelChecker.Parser
 import ModelChecker.MakeTransducer
-import ModelChecker.Structure 
 import ModelChecker.Matrix 
+import ModelChecker.Structure 
 
 import SampleStructure 
 
@@ -37,7 +37,7 @@ main = runInputT settings $ do
         loop = do 
           msentence <- getInputLine "> " 
           case msentence of 
-            Nothing -> return () 
+            Nothing -> outputStrLn "Goodbye"
             Just "" -> loop 
             Just "help" -> printHelp 
             Just (parseString -> Left err) -> do 
