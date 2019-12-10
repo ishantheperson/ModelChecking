@@ -20,8 +20,6 @@ import Vector
 import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
-import Debug.Trace 
-
 getVar :: Quantifier -> String 
 getVar = \case 
   Forall s -> s 

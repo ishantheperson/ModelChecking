@@ -9,7 +9,10 @@ import ModelChecker.DFA
 
 import qualified Data.Set as Set 
 
-data BinaryAlphabet = BZero | BOne deriving (Show, Eq, Ord, Bounded, Enum)
+data BinaryAlphabet = BZero | BOne deriving (Eq, Ord, Bounded, Enum)
+instance Show BinaryAlphabet where 
+  show BZero = "0"
+  show BOne  = "1"
 instance Num BinaryAlphabet where 
   fromInteger 0 = BZero
   fromInteger _ = BOne 
