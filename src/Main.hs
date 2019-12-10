@@ -35,7 +35,7 @@ main = runInputT settings $ do
           loop
   
         loop = do 
-          msentence <- getInputLine "> " 
+          msentence <- getInputLine "\x1b[34;1m> \x1b[0m" 
           case msentence of 
             Nothing -> outputStrLn "Goodbye"
             Just "" -> loop 
