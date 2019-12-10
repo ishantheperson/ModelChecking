@@ -51,7 +51,7 @@ instance Traversable (Vector n) where
   traverse f (x :+ xs) = (:+) <$> f x <*> traverse f xs 
 
 instance Show a => Show (Vector n a) where 
-  show v = "[" ++ (show $ toList v) ++ "]"
+  show v = "{" ++ (show $ toList v) ++ "}"
 
 
 -- These mean we can only compare

@@ -34,7 +34,7 @@ checkStatement structure (Statement qs m) =
           let name = case s of Forall s -> s; Exists s -> s 
 
           seen <- gets $ Set.member name 
-          when seen $ tell ["variable defined multiple times: '" ++ name ++ "'"]
+          when seen $ tell ["variable quantified multiple times: '" ++ name ++ "'"]
           modify $ Set.insert name 
 
         checkVar :: Context m => String -> m () 

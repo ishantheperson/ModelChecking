@@ -9,11 +9,14 @@ import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Tok 
 
+data ParseResult = ParsedStatement Statement | ParsedMatrix Matrix deriving Show 
+
 -- | Parses the given string, and returns either
---   a parse error or a fully parsed Statement
-parseString :: String -> Either ParseError Statement 
+--   a parse error or a fully parsed Statement/Matrix 
+parseString :: String -> Either ParseError ParseResult 
 parseString = parse (whitespace *> input <* eof) "" 
-  where input = Statement <$> (concat <$> many1 quantifier) <*> matrix
+  where input = ParsedStatement <$> statement <|> ParsedMatrix <$> matrix
+        statement = Statement <$> (concat <$> many1 quantifier) <*> matrix
 
 -- | Parses one quantifier expression (might introduce many variables) 
 quantifier :: Parser [Quantifier]

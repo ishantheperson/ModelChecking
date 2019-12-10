@@ -9,11 +9,13 @@
 import ModelChecker.Parser
 import ModelChecker.MakeTransducer
 import ModelChecker.Structure 
+import ModelChecker.Matrix 
 
 import SampleStructure 
 
 import System.Console.Haskeline
 
+defaultStructure = presburger
 
 -- funky test case: exists a b c d. !(!(a + b = c && c + b = a) || (b + d = d))
 -- aka: forall a b c d. a + b = c && b + c = a ==> b + d = d 
@@ -43,13 +45,20 @@ main = runInputT settings $ do
               outputStrLn "" 
               loop 
 
-            Just (parseString -> Right program) -> do 
-              case checkStatement presburger program of 
-                [] -> do            
-                  let result = valid presburger program 
-                  outputStrLn $ show result 
+            Just (parseString -> Right parseResult) -> do 
+              case parseResult of 
+                ParsedMatrix m -> 
+                 case testMatrix defaultStructure m of 
+                   Left errors -> mapM_ outputStrLn errors 
+                   Right result -> outputStrLn result 
 
-                errors -> mapM_ outputStrLn errors 
+                ParsedStatement program -> do 
+                  case checkStatement defaultStructure program of 
+                    [] -> do            
+                      let result = valid defaultStructure program 
+                      outputStrLn $ show result 
+
+                    errors -> mapM_ outputStrLn errors 
 
               outputStrLn ""
               loop 

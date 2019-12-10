@@ -10,12 +10,15 @@ module ModelChecker.DFA (
   toAdjacencyMatrix,
   empty, nonempty,
   getInitialState,
+  findAccepted,
   nfaeClosure,
   productMachine, negateMachine) where 
 
 import Vector 
 
 import Data.List (nub)
+import Data.Foldable (msum)
+import Data.Traversable (forM)
 import Data.Set (Set)
 import qualified Data.Set as Set 
 
@@ -111,6 +114,36 @@ empty t = Set.null $ Set.filter (isFinalState t) reachable
           in execState (forM_ initials dfs) Set.empty
 
 nonempty = not . empty 
+
+findAccepted :: forall node sigma arity. 
+                (Ord node, Bounded sigma, Enum sigma)
+             => DFA node sigma arity 
+             -> Maybe [Vector arity sigma]
+findAccepted t = evalState (msum <$> forM (Set.toList $ getInitialState t) dfs) Set.empty  
+  where dfs :: MonadState (Set node) m => node -> m (Maybe [Vector arity sigma])
+        dfs currentNode = do 
+          modify $ Set.insert currentNode
+          
+          if isFinalState t currentNode
+            then return $ Just []
+            else do 
+              possible <- forM vectors $ \letter -> do 
+                visited <- get 
+
+                let targets = mkTransition t (currentNode, letter)
+                lists <- forM targets $ \target -> do 
+                  -- If we saw it previously, it must not be an accepting state 
+                  if Set.member target visited 
+                    then return Nothing 
+                    else 
+                      dfs target >>= \case 
+                        Nothing -> return Nothing 
+                        Just xs -> return $ Just (letter:xs) 
+                
+                return $ msum lists 
+              return $ msum possible 
+
+        vectors = getAlphabet (arity t)
 
 -- | Constructs a DFA from t1 and t2 
 --   where \( L(t1 \texttt{ `productMachine` } t2) = L(t_1) \cap L(t_2) \) 

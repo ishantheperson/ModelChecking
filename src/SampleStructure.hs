@@ -22,10 +22,10 @@ addIsFinal s = s == NoCarry
 addIsInitial s = s == NoCarry
 addTransition (state, v) = pure $ case (state, fromVec3 v) of 
   (Sink, _) -> Sink 
-  (Carry, (1, 0, 1)) -> NoCarry
-  (Carry, (0, 1, 1)) -> NoCarry
   (Carry, (0, 0, 1)) -> NoCarry 
   (Carry, (1, 1, 0)) -> Carry
+  (Carry, (0, 1, 0)) -> Carry
+  (Carry, (1, 0, 0)) -> Carry
   (NoCarry, (1, 1, 0)) -> Carry
   (NoCarry, (0, 0, 0)) -> NoCarry
   (NoCarry, (1, 0, 1)) -> NoCarry
