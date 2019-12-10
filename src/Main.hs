@@ -52,7 +52,7 @@ main = runInputT settings $ do
                    Left errors -> mapM_ outputStrLn errors 
                    Right result -> outputStrLn result 
 
-                ParsedStatement program -> do 
+                ParsedStatement program -> 
                   case checkStatement defaultStructure program of 
                     [] -> do            
                       let result = valid defaultStructure program 
@@ -62,3 +62,4 @@ main = runInputT settings $ do
 
               outputStrLn ""
               loop 
+              

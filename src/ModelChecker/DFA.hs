@@ -126,12 +126,12 @@ findAccepted t = evalState (msum <$> forM (Set.toList $ getInitialState t) dfs) 
           
           if isFinalState t currentNode
             then return $ Just []
-            else do 
-              possible <- forM vectors $ \letter -> do 
+            else 
+              fmap msum $ forM vectors $ \letter -> do 
                 visited <- get 
 
                 let targets = mkTransition t (currentNode, letter)
-                lists <- forM targets $ \target -> do 
+                fmap msum $ forM targets $ \target -> 
                   -- If we saw it previously, it must not be an accepting state 
                   if Set.member target visited 
                     then return Nothing 
@@ -140,9 +140,6 @@ findAccepted t = evalState (msum <$> forM (Set.toList $ getInitialState t) dfs) 
                         Nothing -> return Nothing 
                         Just xs -> return $ Just (letter:xs) 
                 
-                return $ msum lists 
-              return $ msum possible 
-
         vectors = getAlphabet (arity t)
 
 -- | Constructs a DFA from t1 and t2 

@@ -1,10 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE TypeOperators #-}
--- {-# LANGUAGE AllowAmbiguousTypes #-}
 module ModelChecker.Transducer where 
 
 import Vector   
