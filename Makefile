@@ -26,4 +26,4 @@ doc: $(SOURCE)
 	$(HADDOCK) --html -o doc $(SOURCE)
 
 clean: 
-	rm -rf build/* $(EXECUTABLE) doc
+	rm -rf build bin $(EXECUTABLE) doc

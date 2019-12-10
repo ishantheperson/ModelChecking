@@ -43,4 +43,6 @@ testMatrix structure matrix =
         case findAccepted transducer of 
           Nothing -> "<language is empty>"
           Just [] -> "<empty string>"
-          Just s -> show v ++ " -> " ++ show s 
+          Just s -> 
+            withIndices v "" $ \i name accum -> accum ++ (if null accum then "" else "\n") ++ 
+              name ++ " -> " ++ unwords (map (show . flip index i) s)
