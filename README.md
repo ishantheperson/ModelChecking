@@ -11,4 +11,24 @@ Otherwise should be none.
 
 ## Usage
 
-See `src/SampleModel.hs`. Currently I am working on making the code more modular and making it easier to add new structure implementations. Right now presburger arithmetic is hardcoded in. 
+The structure included is presburger arithmetic. To add more you would need to 
+create some new DFAs (as seen in `src/SampleStructure.hs`) and then package it up
+into a structure (as seen at the end of `src/ModelChecker/Structure.hs`) and then 
+switch `defaultStructure` in `src/Main.hs` to the new one. 
+
+```
+% make 
+% ./mcheck # also bin/mcheck
+```
+
+You can enter a quantified sentence
+```
+forall a b c. a + b = c
+```
+or just the matrix portion to see if the DFA corresponding to that
+accepts anything or not
+```
+a + b != c
+```
+
+You can run `help` in the interactive prompt for some more examples
