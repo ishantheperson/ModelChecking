@@ -7,10 +7,8 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE BangPatterns #-}
 
 module Vector where 

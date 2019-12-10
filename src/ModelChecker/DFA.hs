@@ -146,7 +146,7 @@ findAccepted t = evalState (msum <$> forM (Set.toList $ getInitialState t) dfs) 
 --   where \( L(t1 \texttt{ `productMachine` } t2) = L(t_1) \cap L(t_2) \) 
 -- 
 -- Precondition: We assume activeTracks t1 == activeTracks t2 
-productMachine :: (Eq n1, Eq n2) => DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
+productMachine :: DFA n1 b c -> DFA n2 b c -> DFA (n1, n2) b c
 productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transitionFunction' activeTracks'
   where states' = states t1 `Set.cartesianProduct` states t2
         arity'  = arity t1
@@ -154,8 +154,8 @@ productMachine t1 t2 = DFA states' arity' isFinalState' isInitialState' transiti
         isFinalState'   (n1, n2) = isFinalState   t1 n1 && isFinalState   t2 n2 
         isInitialState' (n1, n2) = isInitialState t1 n1 && isInitialState t2 n2 
 
-        transitionFunction' ((n1, n2), e) = nub [(a, b) | a <- transitionFunction t1 (n1, e),
-                                                          b <- transitionFunction t2 (n2, e) ]
+        transitionFunction' ((n1, n2), e) = [(a, b) | a <- transitionFunction t1 (n1, e),
+                                                      b <- transitionFunction t2 (n2, e) ]
 
 nfaeClosure :: (Ord a, Ord b, Bounded b, Enum b) => DFA a b c -> DFA a b c 
 nfaeClosure t =

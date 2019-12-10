@@ -14,7 +14,7 @@ data ParseResult = ParsedStatement Statement | ParsedMatrix Matrix deriving Show
 -- | Parses the given string, and returns either
 --   a parse error or a fully parsed Statement/Matrix 
 parseString :: String -> Either ParseError ParseResult 
-parseString = parse (whitespace *> input <* eof) "" 
+parseString = parse (whitespace *> input <* eof) "" . (++" ")
   where input = ParsedStatement <$> statement <|> ParsedMatrix <$> matrix
         statement = Statement <$> (concat <$> many1 quantifier) <*> matrix
 
