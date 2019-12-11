@@ -48,9 +48,9 @@ main = runInputT settings $ do
             Just (parseString -> Right parseResult) -> do 
               case parseResult of 
                 ParsedMatrix m -> 
-                 case testMatrix defaultStructure m of 
-                   Left errors -> mapM_ outputStrLn errors 
-                   Right result -> outputStrLn result 
+                  case testMatrix defaultStructure m of 
+                    Left errors -> mapM_ outputStrLn errors 
+                    Right result -> outputStrLn result 
 
                 ParsedStatement program -> 
                   case checkStatement defaultStructure program of 
@@ -62,4 +62,3 @@ main = runInputT settings $ do
 
               outputStrLn ""
               loop 
-              

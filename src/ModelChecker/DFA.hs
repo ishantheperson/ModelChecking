@@ -101,7 +101,7 @@ empty t = Set.null $ Set.filter (isFinalState t) reachable
         dfs currentNode = do 
           modify $ Set.insert currentNode
 
-          forM_ (Set.toList $ getDestinations t currentNode) $ \v -> do 
+          forM_ (getDestinations t currentNode) $ \v -> do 
             visited <- get 
 
             if Set.member v visited 
