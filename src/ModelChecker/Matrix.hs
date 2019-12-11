@@ -18,7 +18,7 @@ import Control.Monad.Writer
 -- | Gets all variables seen in the matrix 
 getAllVars structure matrix = 
   case runWriter $ execStateT (go matrix) Set.empty of 
-    (vars, [])  -> Right $ Set.toList vars 
+    (vars, [])  -> Right $ Set.toAscList vars 
     (_, errors) -> Left errors 
 
   where go :: (MonadState (Set String) m, MonadWriter [String] m) => Matrix -> m () 
