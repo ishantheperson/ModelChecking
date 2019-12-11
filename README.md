@@ -32,3 +32,19 @@ a -> b && b -> c && c -> d && d -> e
 ```
 
 You can run `help` in the interactive prompt for some more examples
+
+
+Variables can be any alphanumeric string + single quotes,
+as long as they are not the reserved words "forall, exists, and, or" 
+
+The operators are 
+    -> (binary operator, default is a -> b <=> a + 1 = b)
+    _ + _ = _ (ternary operator, default is just addition a + b = c)
+    = (equality) 
+    
+    &&, and (can also use the word and instead)
+    ||, or (can also use the word or instead)
+    => (implication)
+    ! (negation. Can also be used in front of = in ternary/equality) 
+
+Quantifiers are forall and exists. They must appear before the matrix
