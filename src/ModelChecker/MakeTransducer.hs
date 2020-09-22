@@ -34,8 +34,7 @@ valid structure (Statement qs m) = withVector qs $ \len vars -> -- NOTE: qs is a
             case quant of Exists _ -> deleteTrack lastTransducer index
                           Forall _ -> negateMachine $ deleteTrack (negateMachine lastTransducer) index
     in nonempty withoutTracks 
-
--- This works but we need a full continuation  
+  
 processMatrix :: forall n b t1 t2 t3. (Ord t1, Ord t2, Ord t3) =>
                  Structure t1 t2 t3 BinaryAlphabet
               -> Matrix 
